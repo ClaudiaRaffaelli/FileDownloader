@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>Form</class>
+ <widget class="QWidget" name="Form">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>627</width>
+    <height>491</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Form</string>
+  </property>
+  <layout class="QGridLayout" name="gridLayout">
+   <property name="sizeConstraint">
+    <enum>QLayout::SetMinimumSize</enum>
+   </property>
+   <item row="0" column="0">
+    <layout class="QGridLayout" name="mainLayout">
+     <property name="sizeConstraint">
+      <enum>QLayout::SetMaximumSize</enum>
+     </property>
+     <item row="3" column="0">
+      <widget class="QPushButton" name="startAllDownloadButton">
+       <property name="text">
+        <string>Start all downloads</string>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="0">
+      <layout class="QVBoxLayout" name="verticalLayout">
+       <item>
+        <widget class="QLabel" name="label">
+         <property name="text">
+          <string>Insert URL to download:</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <layout class="QHBoxLayout" name="horizontalLayout_2">
+         <item>
+          <widget class="QLineEdit" name="urlLineEdit">
+           <property name="placeholderText">
+            <string>e.g. url: https://...</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="chooseLocationButton">
+           <property name="text">
+            <string>Save as</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="startIndividualDownloadButton">
+           <property name="text">
+            <string>Start download</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+      </layout>
+     </item>
+     <item row="4" column="0">
+      <widget class="QPushButton" name="pauseAllDownloadButton">
+       <property name="text">
+        <string>Pause all downloads</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections>
+  <connection>
+   <sender>pauseAllDownloadButton</sender>
+   <signal>clicked()</signal>
+   <receiver>Form</receiver>
+   <slot>pause_download()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>264</x>
+     <y>478</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>181</x>
+     <y>0</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>startAllDownloadButton</sender>
+   <signal>clicked()</signal>
+   <receiver>Form</receiver>
+   <slot>start_resume_download()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>302</x>
+     <y>444</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>351</x>
+     <y>0</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>chooseLocationButton</sender>
+   <signal>clicked()</signal>
+   <receiver>Form</receiver>
+   <slot>choose_location_save()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>437</x>
+     <y>305</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>536</x>
+     <y>5</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>startIndividualDownloadButton</sender>
+   <signal>clicked()</signal>
+   <receiver>Form</receiver>
+   <slot>start_individual_download()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>543</x>
+     <y>302</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>515</x>
+     <y>9</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
+ <slots>
+  <slot>start_resume_download()</slot>
+  <slot>pause_download()</slot>
+  <slot>choose_location_save()</slot>
+  <slot>start_individual_download()</slot>
+ </slots>
+</ui>

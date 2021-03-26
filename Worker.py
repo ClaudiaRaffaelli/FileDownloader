@@ -10,18 +10,19 @@ from PyQt5.QtGui import QImage, QPixmap, QIcon
 
 class Worker(QObject):
 
-	def __init__(self, url, parent=None):
+	def __init__(self, parent=None):
 		super(QObject, self).__init__(parent)
+		self.url = None
+		self.completePath = None
+		self.thread = QThread()
+
+	def start_download(self, filepath, url):
+		self.completePath = filepath
 		self.url = url
 
-		# as default the downloaded file will be called with the original file name
-		filename = self.url.split('/')[-1]
-
-		# creating the folder if it doesn't exists
-		Path("./Downloads").mkdir(parents=True, exist_ok=True)
-
-		# also by default the file is saved in the Download directory
-		self.completePath = "./Downloads/"+filename
+		self.moveToThread(self.thread)
+		self.thread.started.connect(self.download)
+		self.thread.start()
 
 	def download(self):
 
