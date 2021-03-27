@@ -16,6 +16,8 @@ from DownloadsTableModel import DownloadsTableModel
 
 class DownloadPage(QWidget):
 	# https://github.com/ClaudiaRaffaelli/Cindy-s-Bad-Luck-BLS-VR/archive/refs/tags/v1.0.2.zip
+	# https://github.com/ClaudiaRaffaelli/Cindy-s-Bad-Luck-BLS-VR/releases/download/v1.0.2/BLS.apk
+
 
 	def __init__(self, parent=None):
 		super(DownloadPage, self).__init__(parent)
@@ -41,6 +43,8 @@ class DownloadPage(QWidget):
 		self.savingLocation = ""
 
 		# current threads of download
+		# todo make it a dictionary with as keys the ids of the workers 0,1,.. and value the worker object
+		#  so that when a worker has finished you can delete it without changing the indices of the dictionary (ex array)
 		self.downloadWorkerThreads = []
 
 
@@ -49,8 +53,7 @@ class DownloadPage(QWidget):
 		# taking the url from the lineEdit
 		url = self.urlLineEdit.text()
 
-		# adding the download to the model in order to display it in the table view
-		self.downloadsTableModel.add_download_to_table(fullpath=self.savingLocation, url=url)
+
 		# todo 0 is the row and 5 the fixed column. The index should be taken as input
 		#self.downloadsTableView.setIndexWidget(self.downloadsTableModel.index(0, 5), QProgressBar())
 
@@ -58,8 +61,17 @@ class DownloadPage(QWidget):
 		worker = Worker()
 		# putting the worker for this download in the array of worker threads
 		self.downloadWorkerThreads.append(worker)
-		# starting the worker
-		worker.start_download(filepath=self.savingLocation, url=url)
+
+		# Connecting all the signals of the thread.
+		# Adding the download to the model in order to display it in the table view with initial data
+		worker.download_starting.connect(self.downloadsTableModel.add_download_to_table)
+
+		worker.download_started.connect(self.downloadsTableModel.init_row)
+		# This signal will be used to update the table model
+		worker.download_update.connect(self.downloadsTableModel.update_data_to_table)
+
+		# starting the worker assigning an ID
+		worker.start_download(thread_id=len(self.downloadWorkerThreads)-1, filepath=self.savingLocation, url=url)
 
 	@pyqtSlot()
 	def choose_location_save(self):
