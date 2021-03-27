@@ -1,17 +1,13 @@
-from sys import argv, exit
-from pathlib import Path
+import platform
+import os
+import subprocess
 
 from PyQt5 import uic
-from PyQt5.QtCore import pyqtSlot, QThread, Qt, QSettings, QPoint, QFileInfo, QSize, QStandardPaths, \
-	QDir, QModelIndex, QBuffer, QIODevice
-from PyQt5.QtGui import QPixmap, QKeySequence, QPixmapCache, QStandardItemModel, QStandardItem
-from PyQt5.QtWidgets import QApplication, QMessageBox, QFileDialog, QMenu, QAction, QMainWindow, \
-	QSizePolicy, QShortcut, QWidget, QTableView, QHeaderView, QProgressBar
+from PyQt5.QtCore import pyqtSlot, Qt, QPoint, QFileInfo
+from PyQt5.QtWidgets import QFileDialog, QMenu, QAction, QWidget, QTableView, QHeaderView
 
-from Worker import Worker
-from DownloadsTableModel import DownloadsTableModel
-
-# controller
+from gui.Worker import Worker
+from gui.DownloadsTableModel import DownloadsTableModel, CustomRole
 
 
 class DownloadPage(QWidget):
@@ -34,12 +30,11 @@ class DownloadPage(QWidget):
 		self.downloadsTableView.horizontalHeader().setStretchLastSection(True)
 
 		self.mainLayout.addWidget(self.downloadsTableView)
+		# connecting the signal for the context menu on right click on download table row
+		self.downloadsTableView.setContextMenuPolicy(Qt.CustomContextMenu)
+		self.downloadsTableView.customContextMenuRequested.connect(self.context_menu_triggered_downloads_table)
 
-		# creating the folder where to save the files as default if it doesn't exists
-		# Path("./Downloads").mkdir(parents=True, exist_ok=True)
-
-		# also by default the file is saved in the Download directory
-		# self.rootPath = "./Downloads/"
+		# where the file will be saved
 		self.savingLocation = ""
 
 		# current threads of download
@@ -52,7 +47,6 @@ class DownloadPage(QWidget):
 	def start_individual_download(self):
 		# taking the url from the lineEdit
 		url = self.urlLineEdit.text()
-
 
 		# todo 0 is the row and 5 the fixed column. The index should be taken as input
 		#self.downloadsTableView.setIndexWidget(self.downloadsTableModel.index(0, 5), QProgressBar())
@@ -69,6 +63,10 @@ class DownloadPage(QWidget):
 		worker.download_started.connect(self.downloadsTableModel.init_row)
 		# This signal will be used to update the table model
 		worker.download_update.connect(self.downloadsTableModel.update_data_to_table)
+		# this signal will be used to know when the download is over
+		worker.download_completed.connect(self.downloadsTableModel.completed_row)
+		# this signal will be used to set the row in table model as paused
+		worker.download_paused.connect(self.downloadsTableModel.paused_row)
 
 		# starting the worker assigning an ID
 		worker.start_download(thread_id=len(self.downloadWorkerThreads)-1, filepath=self.savingLocation, url=url)
@@ -100,3 +98,38 @@ class DownloadPage(QWidget):
 			worker.thread.requestInterruption()
 			worker.thread.wait(2000)
 			print("interrupt request")
+
+	@pyqtSlot(QPoint)
+	def context_menu_triggered_downloads_table(self, clickpoint):
+		index = self.downloadsTableView.indexAt(clickpoint)
+		if index.isValid():
+			context = QMenu(self)
+			finder = "Show in Explorer"
+			if platform.system() == "Linux":
+				finder = "Reveal in File Explorer"
+			elif platform.system() == "Darwin":
+				finder = "Reveal in Finder"
+			openExplorer = QAction(finder, self)
+			# todo maybe more actions here
+			context.addActions([openExplorer])
+			openExplorer.triggered.connect(self.open_explorer_item)
+			context.exec(self.downloadsTableView.mapToGlobal(clickpoint))
+
+	@pyqtSlot()
+	def open_explorer_item(self):
+		# todo find out what happens if you move the file
+		index = self.downloadsTableView.selectionModel().currentIndex()
+		currentItem = self.downloadsTableView.model().itemFromIndex(index)
+		info = QFileInfo(currentItem.data(Qt.UserRole + CustomRole.full_path))
+		# revealing in Finder / Explorer / Nautilus the selected file
+		if info.isDir():
+			filepath = info.canonicalFilePath()
+		else:
+			filepath = info.canonicalPath()
+		try:
+			os.startfile(filepath)
+		except:
+			try:
+				subprocess.call(["open", "-R", filepath])
+			except:
+				subprocess.Popen(["xdg-open", filepath])

@@ -11,3 +11,7 @@ def size_converter(size_bytes):
 	s = round(size_bytes / p, 2)
 	return str(s) + " " + size_name[i]
 
+
+def speed_calculator(size_bytes, time_interval):
+	return size_converter(size_bytes // time_interval) + "/s"
+

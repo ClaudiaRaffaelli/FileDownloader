@@ -2,7 +2,8 @@ from PyQt5.QtGui import QStandardItemModel, QIcon, QStandardItem
 from PyQt5.QtCore import Qt, pyqtSignal, pyqtSlot
 
 from PyQt5.QtWidgets import QProgressBar
-import Utils as utils
+
+import gui.Utils as utils
 
 
 class DownloadsTableModel(QStandardItemModel):
@@ -44,10 +45,24 @@ class DownloadsTableModel(QStandardItemModel):
 		self.setData(self.index(row, 1), utils.size_converter(dimension))
 		self.setData(self.index(row, 2), "Downloading ...")
 
-	@pyqtSlot(int, int)
-	def update_data_to_table(self, row, downloaded_size):
+	@pyqtSlot(int, int, str)
+	def update_data_to_table(self, row, downloaded_size, speed):
 		# updating data of a download at specific table index
 		self.setData(self.index(row, 4), utils.size_converter(downloaded_size))
+		self.setData(self.index(row, 3), speed)
+
+	@pyqtSlot(int)
+	def completed_row(self, row):
+		# setting the status of the download row as completed
+		self.setData(self.index(row, 2), "Completed")
+		self.setData(self.index(row, 3), "-")
+
+	# todo maybe paused_row and completed_row can be merged taking as input the status
+	@pyqtSlot(int)
+	def paused_row(self, row):
+		# setting the status of the download row as completed
+		self.setData(self.index(row, 2), "Paused")
+		self.setData(self.index(row, 3), "-")
 
 	def select_all(self):
 		for row in range(0, self.rowCount()):

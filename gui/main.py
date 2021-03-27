@@ -1,15 +1,10 @@
 from sys import argv, exit
-from pathlib import Path
 
 from PyQt5 import uic
-from PyQt5.QtCore import pyqtSlot, QThread, Qt, QSettings, QPoint, QFileInfo, QSize, QStandardPaths, \
-	QDir, QModelIndex, QBuffer, QIODevice
-from PyQt5.QtGui import QPixmap, QKeySequence, QPixmapCache, QStandardItemModel, QStandardItem
-from PyQt5.QtWidgets import QApplication, QMessageBox, QFileDialog, QMenu, QAction, QMainWindow, \
-	QSizePolicy, QShortcut
+from PyQt5.QtCore import Qt
+from PyQt5.QtWidgets import QApplication, QMainWindow
 
-from Worker import Worker
-from DownloadPage import DownloadPage
+from gui.DownloadPage import DownloadPage
 
 # todo possibility to change the file name with double click and enter
 # todo possibility to change the location where the file will be saved
