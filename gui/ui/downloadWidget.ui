@@ -22,15 +22,11 @@
      <property name="sizeConstraint">
       <enum>QLayout::SetMaximumSize</enum>
      </property>
-     <item row="3" column="0">
-      <widget class="QPushButton" name="startAllDownloadButton">
-       <property name="text">
-        <string>Start all downloads</string>
-       </property>
-      </widget>
-     </item>
      <item row="0" column="0">
       <layout class="QVBoxLayout" name="verticalLayout">
+       <property name="bottomMargin">
+        <number>0</number>
+       </property>
        <item>
         <widget class="QLabel" name="label">
          <property name="text">
@@ -43,12 +39,15 @@
          <item>
           <widget class="QLineEdit" name="urlLineEdit">
            <property name="placeholderText">
-            <string>e.g. url: https://...</string>
+            <string>https://...</string>
            </property>
           </widget>
          </item>
          <item>
           <widget class="QPushButton" name="chooseLocationButton">
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
            <property name="text">
             <string>Save as</string>
            </property>
@@ -56,6 +55,9 @@
          </item>
          <item>
           <widget class="QPushButton" name="startIndividualDownloadButton">
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
            <property name="text">
             <string>Start download</string>
            </property>
@@ -63,14 +65,75 @@
          </item>
         </layout>
        </item>
+       <item>
+        <layout class="QHBoxLayout" name="horizontalLayout">
+         <item>
+          <widget class="QPushButton" name="startSelectedDownloadButton">
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
+           <property name="toolTip">
+            <string>Start selected downloads</string>
+           </property>
+           <property name="text">
+            <string/>
+           </property>
+           <property name="icon">
+            <iconset>
+             <normaloff>../icons/play.svg</normaloff>../icons/play.svg</iconset>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="pauseSelectedDownloadButton">
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
+           <property name="toolTip">
+            <string>Pause selected downloads</string>
+           </property>
+           <property name="text">
+            <string/>
+           </property>
+           <property name="icon">
+            <iconset>
+             <normaloff>../icons/pause.svg</normaloff>../icons/pause.svg</iconset>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="stopSelectedDownloadButton">
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
+           <property name="toolTip">
+            <string>Stop selected downloads</string>
+           </property>
+           <property name="text">
+            <string/>
+           </property>
+           <property name="icon">
+            <iconset>
+             <normaloff>../icons/stop.svg</normaloff>../icons/stop.svg</iconset>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <spacer name="horizontalSpacer">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>40</width>
+             <height>20</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+        </layout>
+       </item>
       </layout>
-     </item>
-     <item row="4" column="0">
-      <widget class="QPushButton" name="pauseAllDownloadButton">
-       <property name="text">
-        <string>Pause all downloads</string>
-       </property>
-      </widget>
      </item>
     </layout>
    </item>
@@ -79,14 +142,14 @@
  <resources/>
  <connections>
   <connection>
-   <sender>pauseAllDownloadButton</sender>
+   <sender>pauseSelectedDownloadButton</sender>
    <signal>clicked()</signal>
    <receiver>Form</receiver>
    <slot>pause_download()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>264</x>
-     <y>478</y>
+     <x>139</x>
+     <y>418</y>
     </hint>
     <hint type="destinationlabel">
      <x>181</x>
@@ -95,14 +158,14 @@
    </hints>
   </connection>
   <connection>
-   <sender>startAllDownloadButton</sender>
+   <sender>startSelectedDownloadButton</sender>
    <signal>clicked()</signal>
    <receiver>Form</receiver>
    <slot>start_resume_download()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>302</x>
-     <y>444</y>
+     <x>75</x>
+     <y>418</y>
     </hint>
     <hint type="destinationlabel">
      <x>351</x>
@@ -117,8 +180,8 @@
    <slot>choose_location_save()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>437</x>
-     <y>305</y>
+     <x>476</x>
+     <y>201</y>
     </hint>
     <hint type="destinationlabel">
      <x>536</x>
@@ -133,12 +196,44 @@
    <slot>start_individual_download()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>543</x>
-     <y>302</y>
+     <x>612</x>
+     <y>201</y>
     </hint>
     <hint type="destinationlabel">
      <x>515</x>
      <y>9</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>stopSelectedDownloadButton</sender>
+   <signal>clicked()</signal>
+   <receiver>Form</receiver>
+   <slot>stop_download()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>173</x>
+     <y>415</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>160</x>
+     <y>4</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>urlLineEdit</sender>
+   <signal>textChanged(QString)</signal>
+   <receiver>Form</receiver>
+   <slot>parse_url()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>219</x>
+     <y>182</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>316</x>
+     <y>4</y>
     </hint>
    </hints>
   </connection>
@@ -148,5 +243,7 @@
   <slot>pause_download()</slot>
   <slot>choose_location_save()</slot>
   <slot>start_individual_download()</slot>
+  <slot>stop_download()</slot>
+  <slot>parse_url()</slot>
  </slots>
 </ui>

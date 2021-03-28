@@ -3,9 +3,9 @@ import os
 import subprocess
 
 from PyQt5 import uic
-from PyQt5.QtCore import pyqtSlot, Qt, QPoint, QFileInfo
-from PyQt5.QtWidgets import QFileDialog, QMenu, QAction, QWidget, QTableView, QHeaderView
-
+from PyQt5.QtCore import pyqtSlot, Qt, QPoint, QFileInfo, QModelIndex, QRegExp
+from PyQt5.QtWidgets import QFileDialog, QMenu, QAction, QWidget, QTableView, QHeaderView, QTableWidget
+from PyQt5.QtGui import QRegExpValidator
 from gui.Worker import Worker
 from gui.DownloadsTableModel import DownloadsTableModel, CustomRole
 
@@ -13,7 +13,6 @@ from gui.DownloadsTableModel import DownloadsTableModel, CustomRole
 class DownloadPage(QWidget):
 	# https://github.com/ClaudiaRaffaelli/Cindy-s-Bad-Luck-BLS-VR/archive/refs/tags/v1.0.2.zip
 	# https://github.com/ClaudiaRaffaelli/Cindy-s-Bad-Luck-BLS-VR/releases/download/v1.0.2/BLS.apk
-
 
 	def __init__(self, parent=None):
 		super(DownloadPage, self).__init__(parent)
@@ -26,13 +25,18 @@ class DownloadPage(QWidget):
 
 		# Init table view
 		self.downloadsTableView.setModel(self.downloadsTableModel)
+
 		self.downloadsTableView.horizontalHeader().setSectionResizeMode(QHeaderView.Interactive)
 		self.downloadsTableView.horizontalHeader().setStretchLastSection(True)
+		# the fields in the table are non editable
+		self.downloadsTableView.setEditTriggers(QTableWidget.NoEditTriggers)
 
 		self.mainLayout.addWidget(self.downloadsTableView)
 		# connecting the signal for the context menu on right click on download table row
 		self.downloadsTableView.setContextMenuPolicy(Qt.CustomContextMenu)
 		self.downloadsTableView.customContextMenuRequested.connect(self.context_menu_triggered_downloads_table)
+		# connecting the signal for one click on a row
+		self.downloadsTableView.clicked.connect(self.row_click)
 
 		# where the file will be saved
 		self.savingLocation = ""
@@ -42,6 +46,10 @@ class DownloadPage(QWidget):
 		#  so that when a worker has finished you can delete it without changing the indices of the dictionary (ex array)
 		self.downloadWorkerThreads = []
 
+		# validation of the input in text line for generic URLs:
+		reg_ex = QRegExp("https?:\/\/[-a-zA-Z0-9@:%._\+~#=\/]{2,256}")
+		input_line_edit_validator = QRegExpValidator(reg_ex, self.urlLineEdit)
+		self.urlLineEdit.setValidator(input_line_edit_validator)
 
 	@pyqtSlot()
 	def start_individual_download(self):
@@ -49,7 +57,7 @@ class DownloadPage(QWidget):
 		url = self.urlLineEdit.text()
 
 		# todo 0 is the row and 5 the fixed column. The index should be taken as input
-		#self.downloadsTableView.setIndexWidget(self.downloadsTableModel.index(0, 5), QProgressBar())
+		# self.downloadsTableView.setIndexWidget(self.downloadsTableModel.index(0, 5), QProgressBar())
 
 		# creating the worker that will download
 		worker = Worker()
@@ -69,7 +77,7 @@ class DownloadPage(QWidget):
 		worker.download_paused.connect(self.downloadsTableModel.paused_row)
 
 		# starting the worker assigning an ID
-		worker.start_download(thread_id=len(self.downloadWorkerThreads)-1, filepath=self.savingLocation, url=url)
+		worker.start_download(thread_id=len(self.downloadWorkerThreads) - 1, filepath=self.savingLocation, url=url)
 
 	@pyqtSlot()
 	def choose_location_save(self):
@@ -98,6 +106,22 @@ class DownloadPage(QWidget):
 			worker.thread.requestInterruption()
 			worker.thread.wait(2000)
 			print("interrupt request")
+
+	@pyqtSlot()
+	def stop_download(self):
+		pass
+
+	@pyqtSlot()
+	def parse_url(self):
+		# enabling the choose save location and start download buttons when there is a URL with a valid start text
+		if self.urlLineEdit.text().startswith(("http://", "https://")) and \
+				self.startIndividualDownloadButton.isEnabled() is False:
+			self.startIndividualDownloadButton.setEnabled(True)
+			self.chooseLocationButton.setEnabled(True)
+		elif not self.urlLineEdit.text().startswith(("http://", "https://")) and \
+				self.startIndividualDownloadButton.isEnabled() is True:
+			self.startIndividualDownloadButton.setEnabled(False)
+			self.chooseLocationButton.setEnabled(False)
 
 	@pyqtSlot(QPoint)
 	def context_menu_triggered_downloads_table(self, clickpoint):
@@ -133,3 +157,9 @@ class DownloadPage(QWidget):
 				subprocess.call(["open", "-R", filepath])
 			except:
 				subprocess.Popen(["xdg-open", filepath])
+
+	@pyqtSlot(QModelIndex)
+	def row_click(self, index):
+		# single click on first column, the checkbox state is changed
+		if index.isValid() and index.column() == 0:
+			self.downloadsTableModel.toggle_checkbox(index)

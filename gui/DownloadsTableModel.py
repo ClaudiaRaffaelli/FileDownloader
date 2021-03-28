@@ -19,9 +19,7 @@ class DownloadsTableModel(QStandardItemModel):
 		self.setHeaderData(3, Qt.Horizontal, "Speed")
 		self.setHeaderData(4, Qt.Horizontal, "Downloaded")
 		self.setHeaderData(5, Qt.Horizontal, "Progress")
-		# todo reimplement header to add checkboxes in order to start/stop/pause downloads at groups
-		# todo reveal in finder clicking on the download record in table view
-
+		# todo reimplement header to add checkbox in order to start/stop/pause downloads at groups
 		self.parent = parent
 
 	@pyqtSlot(str, str)
@@ -30,6 +28,7 @@ class DownloadsTableModel(QStandardItemModel):
 		name_item = QStandardItem(fullpath.split('/')[-1])
 		# adding the full path to the item in order to call the "reveal in finder" later on
 		name_item.setData(fullpath, Qt.UserRole + CustomRole.full_path)
+		name_item.setData(Qt.Checked, Qt.CheckStateRole)
 
 		#dim_item = QStandardItem(utils.size_converter(dimension))
 		dim_item = QStandardItem("N/A")
@@ -67,6 +66,12 @@ class DownloadsTableModel(QStandardItemModel):
 	def select_all(self):
 		for row in range(0, self.rowCount()):
 			print(self.item(row, 1))
+
+	def toggle_checkbox(self, index):
+		if index.data(Qt.CheckStateRole) == Qt.Checked:
+			self.setData(index, Qt.Unchecked, Qt.CheckStateRole)
+		else:
+			self.setData(index, Qt.Checked, Qt.CheckStateRole)
 
 
 class CustomRole:

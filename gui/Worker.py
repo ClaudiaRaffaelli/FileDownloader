@@ -25,6 +25,7 @@ class Worker(QObject):
 		self.completePath = None
 		self.thread = QThread()
 		self.threadId = -1
+		# todo maybe set thread id as a name of thread
 
 	def start_download(self, thread_id, filepath, url):
 		# if the user has not set where to save the file, it will be saved in a default directory
