@@ -38,6 +38,9 @@
         <layout class="QHBoxLayout" name="horizontalLayout_2">
          <item>
           <widget class="QLineEdit" name="urlLineEdit">
+           <property name="toolTip">
+            <string>Insert valid download link</string>
+           </property>
            <property name="placeholderText">
             <string>https://...</string>
            </property>
@@ -48,6 +51,9 @@
            <property name="enabled">
             <bool>false</bool>
            </property>
+           <property name="toolTip">
+            <string>Choose saving location</string>
+           </property>
            <property name="text">
             <string>Save as</string>
            </property>
@@ -57,6 +63,9 @@
           <widget class="QPushButton" name="startIndividualDownloadButton">
            <property name="enabled">
             <bool>false</bool>
+           </property>
+           <property name="toolTip">
+            <string>Start download from URL</string>
            </property>
            <property name="text">
             <string>Start download</string>
@@ -102,7 +111,7 @@
           </widget>
          </item>
          <item>
-          <widget class="QPushButton" name="stopSelectedDownloadButton">
+          <widget class="QPushButton" name="cancelSelectedDownloadButton">
            <property name="enabled">
             <bool>false</bool>
            </property>
@@ -181,7 +190,7 @@
    <hints>
     <hint type="sourcelabel">
      <x>476</x>
-     <y>201</y>
+     <y>259</y>
     </hint>
     <hint type="destinationlabel">
      <x>536</x>
@@ -197,7 +206,7 @@
    <hints>
     <hint type="sourcelabel">
      <x>612</x>
-     <y>201</y>
+     <y>259</y>
     </hint>
     <hint type="destinationlabel">
      <x>515</x>
@@ -206,10 +215,10 @@
    </hints>
   </connection>
   <connection>
-   <sender>stopSelectedDownloadButton</sender>
+   <sender>cancelSelectedDownloadButton</sender>
    <signal>clicked()</signal>
    <receiver>Form</receiver>
-   <slot>stop_download()</slot>
+   <slot>cancel_download()</slot>
    <hints>
     <hint type="sourcelabel">
      <x>173</x>
@@ -228,8 +237,8 @@
    <slot>parse_url()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>219</x>
-     <y>182</y>
+     <x>234</x>
+     <y>252</y>
     </hint>
     <hint type="destinationlabel">
      <x>316</x>
@@ -243,7 +252,7 @@
   <slot>pause_download()</slot>
   <slot>choose_location_save()</slot>
   <slot>start_individual_download()</slot>
-  <slot>stop_download()</slot>
+  <slot>cancel_download()</slot>
   <slot>parse_url()</slot>
  </slots>
 </ui>

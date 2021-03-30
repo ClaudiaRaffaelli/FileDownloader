@@ -2,6 +2,8 @@ import os
 import time
 import requests
 from pathlib import Path
+import shutil
+import tempfile
 
 from PyQt5.QtCore import QObject, pyqtSignal, pyqtSlot, QThread, Qt, QCoreApplication
 from PyQt5.QtGui import QImage, QPixmap, QIcon
@@ -25,6 +27,8 @@ class Worker(QObject):
 		self.completePath = None
 		self.thread = QThread()
 		self.threadId = -1
+		self.initialized = False
+		self.lengthDownload = -1
 		# todo maybe set thread id as a name of thread
 
 	def start_download(self, thread_id, filepath, url):
@@ -42,40 +46,59 @@ class Worker(QObject):
 		print("threadID", self.threadId)
 		self.url = url
 
+		# start from the beginning
+		self.resume_position = 0
+		# bytes of downloads already downloaded
+		self.downloaded_size = 0
+
 		self.moveToThread(self.thread)
 		self.thread.started.connect(self.download)
 		self.thread.start()
-
-	def download(self):
-		# todo signal of end download that deletes the model object from the array in downloadPage
 
 		# emitting signal with list of the form [saving path, url] saying that we are starting the download
 		# this is connected through DownloadPage to the table model
 		self.download_starting.emit(self.completePath, self.url)
 
+	def restart_download(self):
+		# if the path already exists we resume
+		if os.path.exists(self.completePath):
+			# getting the file size (bytes) in order to know where to re-start downloading
+			self.resume_position = os.stat(self.completePath).st_size
+		else:
+			# start from the beginning
+			self.resume_position = 0
+
+		self.moveToThread(self.thread)
+		self.thread.start()
+
+		# todo qua un segnale che ho iniziato il resume
+
+	def download(self):
+		# todo signal of end download that deletes the model object from the array in downloadPage
+
 		with requests.Session() as session:
-			# if the path already exists we resume
-			if os.path.exists(self.completePath):
-				# getting the file size (bytes) in order to know where to re-start downloading
-				resume_position = os.stat(self.completePath).st_size
-			else:
-				# start from the beginning
-				resume_position = 0
 
-			response = session.get(self.url, stream=True, headers={"Range": "bytes={}-".format(resume_position)})
-			# todo this is not the entire length in the case of restarted download
-			# length_download_data = len(response.content)
-			# todo find another way to place the length
-			length_download_data = 20
+			response = session.get(self.url, stream=True, headers={"Range": "bytes={}-".format(self.resume_position)})
 
-			# emitting signal with list of the form [saving path, url, dimension of download]
-			self.download_started.emit(self.threadId, length_download_data)
-			downloaded_size = 0
+			# only at the first start of the download it is set the size of it
+			if not self.initialized:
+				if 'Content-Length' not in response.headers:
+					# the content length header is not provided for this download file and we have to set it to unknown
+					pass
+				else:
+					# there is a content-length header
+					self.lengthDownload = response.headers['Content-Length']
+					print("questa sarebbe la length {}".format(self.lengthDownload))
+					# emitting signal of started download communicating the length of the download itself
+					self.download_started.emit(self.threadId, self.lengthDownload)
+					# todo ci sono dei problemi di inconsistenza di lengthDownload, fai delle prove e capisci cosa non va
+
+				self.initialized = True
+
 			with open(self.completePath, 'ab+') as fd:
 				start = time.time()
 				# the chunk size downloaded at a time is of 1MiB
 				for chunk in response.iter_content(chunk_size=1024 * 1024):
-					print(len(chunk))
 					# if the download has not been set to pause we continue the download, otherwise the thread returns
 					if QThread.currentThread().isInterruptionRequested():
 						print("download paused")
@@ -83,12 +106,14 @@ class Worker(QObject):
 						QThread.currentThread().quit()
 						return
 					else:
-						downloaded_size += len(chunk)
-						self.download_update.emit(self.threadId, downloaded_size,
-							utils.speed_calculator(downloaded_size, time.time() - start))
+						self.downloaded_size += len(chunk)
+						self.download_update.emit(self.threadId, self.downloaded_size,
+							utils.speed_calculator(self.downloaded_size, time.time() - start))
 						fd.write(chunk)
 
 		# when the file has been downloaded we quit the thread
 		print("download exited")
+		# todo nel caso di download di cui non si sa la size voglio che venga impostata anche questa a download finito
+		#  (lo faccio dalla tabella magari)
 		self.download_completed.emit(self.threadId)
 		QThread.currentThread().quit()

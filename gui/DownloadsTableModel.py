@@ -41,6 +41,7 @@ class DownloadsTableModel(QStandardItemModel):
 	@pyqtSlot(int, int)
 	def init_row(self, row, dimension):
 		# initialize the row of download with the size of the download
+		print(dimension)
 		self.setData(self.index(row, 1), utils.size_converter(dimension))
 		self.setData(self.index(row, 2), "Downloading ...")
 
@@ -68,10 +69,20 @@ class DownloadsTableModel(QStandardItemModel):
 			print(self.item(row, 1))
 
 	def toggle_checkbox(self, index):
+		# returns True if now the row is checked or False if it is unchecked
 		if index.data(Qt.CheckStateRole) == Qt.Checked:
 			self.setData(index, Qt.Unchecked, Qt.CheckStateRole)
+			return False
 		else:
 			self.setData(index, Qt.Checked, Qt.CheckStateRole)
+			return True
+
+	def get_all_checked_rows(self):
+		checked_rows = []
+		for row in range(0, self.rowCount()):
+			if self.index(row, 0).data(Qt.CheckStateRole) == Qt.Checked:
+				checked_rows.append(row)
+		return checked_rows
 
 
 class CustomRole:

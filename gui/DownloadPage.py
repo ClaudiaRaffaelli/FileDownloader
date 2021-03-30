@@ -11,8 +11,13 @@ from gui.DownloadsTableModel import DownloadsTableModel, CustomRole
 
 
 class DownloadPage(QWidget):
+	# does not have content-length header:
 	# https://github.com/ClaudiaRaffaelli/Cindy-s-Bad-Luck-BLS-VR/archive/refs/tags/v1.0.2.zip
+	# does have content-length header:
 	# https://github.com/ClaudiaRaffaelli/Cindy-s-Bad-Luck-BLS-VR/releases/download/v1.0.2/BLS.apk
+	# https://pbs.twimg.com/profile_images/638746415901114368/e4h_VW4A.png
+	# todo pdf are not downloading why?
+	# https://e-l.unifi.it/pluginfile.php/1123757/mod_resource/content/4/DownloadManager.pdf
 
 	def __init__(self, parent=None):
 		super(DownloadPage, self).__init__(parent)
@@ -51,6 +56,9 @@ class DownloadPage(QWidget):
 		input_line_edit_validator = QRegExpValidator(reg_ex, self.urlLineEdit)
 		self.urlLineEdit.setValidator(input_line_edit_validator)
 
+		# number of checked rows (this will activate if >0 or deactivate if ==0 the buttons of Start, Pause, Cancel
+		self.numCheckedRows = 0
+
 	@pyqtSlot()
 	def start_individual_download(self):
 		# taking the url from the lineEdit
@@ -79,6 +87,13 @@ class DownloadPage(QWidget):
 		# starting the worker assigning an ID
 		worker.start_download(thread_id=len(self.downloadWorkerThreads) - 1, filepath=self.savingLocation, url=url)
 
+		# if this is the first time start a download (there are no rows) we activate the buttons
+		if self.numCheckedRows == 0:
+			self.cancelSelectedDownloadButton.setEnabled(True)
+			self.pauseSelectedDownloadButton.setEnabled(True)
+			self.startSelectedDownloadButton.setEnabled(True)
+		self.numCheckedRows += 1
+
 	@pyqtSlot()
 	def choose_location_save(self):
 		# todo maybe write somewhere on the gui the location of saving
@@ -96,19 +111,30 @@ class DownloadPage(QWidget):
 
 	@pyqtSlot()
 	def start_resume_download(self):
-		# todo this one will start all downloads that are stopped (or only the selected ones)
-		pass
+		# resume all the checked downloads if not already running
+		checked_rows = self.downloadsTableModel.get_all_checked_rows()
+		print("le checked")
+		print(checked_rows)
+		for row in checked_rows:
+			if not self.downloadWorkerThreads[row].thread.isRunning():
+				print("non è running la riga ", row, " la faccio partire")
+				self.downloadWorkerThreads[row].restart_download()
 
 	@pyqtSlot()
 	def pause_download(self):
-		# pauses all downloads todo maybe it will only pause the selected ones
-		for worker in self.downloadWorkerThreads:
-			worker.thread.requestInterruption()
-			worker.thread.wait(2000)
-			print("interrupt request")
+		# pauses all the checked downloads if not already paused
+		checked_rows = self.downloadsTableModel.get_all_checked_rows()
+		print("le checked")
+		print(checked_rows)
+		for row in checked_rows:
+			if self.downloadWorkerThreads[row].thread.isRunning():
+				print("è running la riga ", row, " la fermo")
+				self.downloadWorkerThreads[row].thread.requestInterruption()
+				self.downloadWorkerThreads[row].thread.wait(2000)
+		print("interrupt request")
 
 	@pyqtSlot()
-	def stop_download(self):
+	def cancel_download(self):
 		pass
 
 	@pyqtSlot()
@@ -162,4 +188,23 @@ class DownloadPage(QWidget):
 	def row_click(self, index):
 		# single click on first column, the checkbox state is changed
 		if index.isValid() and index.column() == 0:
-			self.downloadsTableModel.toggle_checkbox(index)
+			# the return is a boolean that tells if the row now is checked or unchecked
+			is_checked = self.downloadsTableModel.toggle_checkbox(index)
+			# there is a one more checked row now and we increment the counter
+			if is_checked is True:
+				# if before there wasn't any row selected, we have to enable this buttons
+				if self.numCheckedRows == 0:
+					self.cancelSelectedDownloadButton.setEnabled(True)
+					self.pauseSelectedDownloadButton.setEnabled(True)
+					self.startSelectedDownloadButton.setEnabled(True)
+				self.numCheckedRows += 1
+			else:
+				self.numCheckedRows -= 1
+				# deactivating the buttons of Start, Pause, Cancel because there are no selected rows of downloads
+				if self.numCheckedRows == 0:
+					self.cancelSelectedDownloadButton.setEnabled(False)
+					self.pauseSelectedDownloadButton.setEnabled(False)
+					self.startSelectedDownloadButton.setEnabled(False)
+
+
+
