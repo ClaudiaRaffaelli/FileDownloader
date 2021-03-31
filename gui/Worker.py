@@ -18,7 +18,7 @@ class Worker(QObject):
 	download_starting = pyqtSignal(str, str)
 	download_started = pyqtSignal(int, int)
 	download_update = pyqtSignal(int, int, str)
-	download_completed = pyqtSignal(int)
+	download_completed = pyqtSignal(int, int)
 	download_paused = pyqtSignal(int)
 
 	def __init__(self, parent=None):
@@ -72,6 +72,8 @@ class Worker(QObject):
 		self.thread.start()
 
 		# todo qua un segnale che ho iniziato il resume
+		# todo investigare come mai non sempre ripartono bene i downloads. Come riprodurre: apk link senza specificare
+		#  il percorso, parte, pausa, faccio ripartire, concluso ma non lo era.
 
 	def download(self):
 		# todo signal of end download that deletes the model object from the array in downloadPage
@@ -88,10 +90,8 @@ class Worker(QObject):
 				else:
 					# there is a content-length header
 					self.lengthDownload = response.headers['Content-Length']
-					print("questa sarebbe la length {}".format(self.lengthDownload))
 					# emitting signal of started download communicating the length of the download itself
-					self.download_started.emit(self.threadId, self.lengthDownload)
-					# todo ci sono dei problemi di inconsistenza di lengthDownload, fai delle prove e capisci cosa non va
+					self.download_started.emit(self.threadId, int(self.lengthDownload))
 
 				self.initialized = True
 
@@ -113,7 +113,7 @@ class Worker(QObject):
 
 		# when the file has been downloaded we quit the thread
 		print("download exited")
-		# todo nel caso di download di cui non si sa la size voglio che venga impostata anche questa a download finito
-		#  (lo faccio dalla tabella magari)
-		self.download_completed.emit(self.threadId)
+		# when the file has been downloaded we quit the thread and send a signal of finish that also sets the downloaded
+		# size. If the size was unknown now it is not
+		self.download_completed.emit(self.threadId, self.downloaded_size)
 		QThread.currentThread().quit()

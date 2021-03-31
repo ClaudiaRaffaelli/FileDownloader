@@ -15,3 +15,9 @@ def size_converter(size_bytes):
 def speed_calculator(size_bytes, time_interval):
 	return size_converter(size_bytes // time_interval) + "/s"
 
+
+class CustomRole:
+	full_path = 0
+	url = 1
+	progress_bar = 2
+	plain_dimension = 3

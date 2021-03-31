@@ -7,7 +7,10 @@ from PyQt5.QtCore import pyqtSlot, Qt, QPoint, QFileInfo, QModelIndex, QRegExp
 from PyQt5.QtWidgets import QFileDialog, QMenu, QAction, QWidget, QTableView, QHeaderView, QTableWidget
 from PyQt5.QtGui import QRegExpValidator
 from gui.Worker import Worker
-from gui.DownloadsTableModel import DownloadsTableModel, CustomRole
+from gui.DownloadsTableModel import DownloadsTableModel
+from gui.ProgressBarDelegate import ProgressBarDelegate
+from gui.Utils import CustomRole
+from gui.CancelDialog import CancelDialog
 
 
 class DownloadPage(QWidget):
@@ -59,13 +62,13 @@ class DownloadPage(QWidget):
 		# number of checked rows (this will activate if >0 or deactivate if ==0 the buttons of Start, Pause, Cancel
 		self.numCheckedRows = 0
 
+		delegate = ProgressBarDelegate(self.downloadsTableView)
+		self.downloadsTableView.setItemDelegateForColumn(5, delegate)
+
 	@pyqtSlot()
 	def start_individual_download(self):
 		# taking the url from the lineEdit
 		url = self.urlLineEdit.text()
-
-		# todo 0 is the row and 5 the fixed column. The index should be taken as input
-		# self.downloadsTableView.setIndexWidget(self.downloadsTableModel.index(0, 5), QProgressBar())
 
 		# creating the worker that will download
 		worker = Worker()
@@ -135,7 +138,16 @@ class DownloadPage(QWidget):
 
 	@pyqtSlot()
 	def cancel_download(self):
-		pass
+		# asking the user if they really want to cancel all progress for selected downloads.
+		cancel_dialog = CancelDialog(None)
+		result = cancel_dialog.exec()
+
+		# if the user presses No or the x on the corner of the dialog, as default the downloads are not deleted
+		if result:
+			print("deleting the downloads")
+		else:
+			# if the user presses Yes we delete the downloads
+			print("not deleting the downloads")
 
 	@pyqtSlot()
 	def parse_url(self):
@@ -205,6 +217,4 @@ class DownloadPage(QWidget):
 					self.cancelSelectedDownloadButton.setEnabled(False)
 					self.pauseSelectedDownloadButton.setEnabled(False)
 					self.startSelectedDownloadButton.setEnabled(False)
-
-
 
