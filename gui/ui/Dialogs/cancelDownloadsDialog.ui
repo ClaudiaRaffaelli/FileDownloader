@@ -6,7 +6,7 @@
    <enum>Qt::WindowModal</enum>
   </property>
   <property name="windowTitle">
-   <string>Cancel downloads?</string>
+   <string>Delete?</string>
   </property>
   <layout class="QGridLayout" name="gridLayout">
    <property name="sizeConstraint">
@@ -46,7 +46,7 @@
          <item>
           <widget class="QLabel" name="label">
            <property name="text">
-            <string>Are you sure you want to cancel all selected downloads? 
+            <string>Are you sure you want to delete from disk all selected downloads? 
 Any progress will be lost.</string>
            </property>
            <property name="alignment">

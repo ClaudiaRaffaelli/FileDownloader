@@ -11,6 +11,7 @@ from gui.DownloadsTableModel import DownloadsTableModel
 from gui.ProgressBarDelegate import ProgressBarDelegate
 from gui.Utils import CustomRole
 from gui.CancelDialog import CancelDialog
+from gui.Worker import DownloadStatus
 
 
 class DownloadPage(QWidget):
@@ -67,6 +68,8 @@ class DownloadPage(QWidget):
 
 	@pyqtSlot()
 	def start_individual_download(self):
+		# todo save all in a json to maintain chronology
+
 		# taking the url from the lineEdit
 		url = self.urlLineEdit.text()
 
@@ -84,8 +87,12 @@ class DownloadPage(QWidget):
 		worker.download_update.connect(self.downloadsTableModel.update_data_to_table)
 		# this signal will be used to know when the download is over
 		worker.download_completed.connect(self.downloadsTableModel.completed_row)
-		# this signal will be used to set the row in table model as paused
-		worker.download_paused.connect(self.downloadsTableModel.paused_row)
+		# this signal will be used to set the row in table model as paused or aborted
+		worker.download_interrupted.connect(self.downloadsTableModel.interrupted_row)
+		# this signal will be used to set the row as re-started a delete
+		worker.download_restarted.connect(self.downloadsTableModel.restarted_row)
+
+		# todo change icon of stop with trash can
 
 		# starting the worker assigning an ID
 		worker.start_download(thread_id=len(self.downloadWorkerThreads) - 1, filepath=self.savingLocation, url=url)
@@ -114,12 +121,15 @@ class DownloadPage(QWidget):
 
 	@pyqtSlot()
 	def start_resume_download(self):
-		# resume all the checked downloads if not already running
+		# resume all the checked downloads if not already running nor already completed
 		checked_rows = self.downloadsTableModel.get_all_checked_rows()
 		print("le checked")
 		print(checked_rows)
 		for row in checked_rows:
-			if not self.downloadWorkerThreads[row].thread.isRunning():
+			print(self.downloadWorkerThreads[row].status)
+			if (not self.downloadWorkerThreads[row].thread.isRunning()) \
+					and (not self.downloadWorkerThreads[row].status == DownloadStatus.complete):
+				print("Aveva status {}".format(self.downloadWorkerThreads[row].status))
 				print("non è running la riga ", row, " la faccio partire")
 				self.downloadWorkerThreads[row].restart_download()
 
@@ -131,10 +141,16 @@ class DownloadPage(QWidget):
 		print(checked_rows)
 		for row in checked_rows:
 			if self.downloadWorkerThreads[row].thread.isRunning():
-				print("è running la riga ", row, " la fermo")
-				self.downloadWorkerThreads[row].thread.requestInterruption()
-				self.downloadWorkerThreads[row].thread.wait(2000)
+				# pause the download at row if it is running, asking the worker to pause
+				self.downloadWorkerThreads[row].status = DownloadStatus.pause
+				self.interrupt_row(row)
 		print("interrupt request")
+
+	def interrupt_row(self, row):
+		# status indicates how the row needs to be interrupted (if paused or aborted)
+		print("è running la riga ", row, " la fermo")
+		self.downloadWorkerThreads[row].thread.requestInterruption()
+		self.downloadWorkerThreads[row].thread.wait(2000)
 
 	@pyqtSlot()
 	def cancel_download(self):
@@ -142,15 +158,37 @@ class DownloadPage(QWidget):
 		cancel_dialog = CancelDialog(None)
 		result = cancel_dialog.exec()
 
-		# if the user presses No or the x on the corner of the dialog, as default the downloads are not deleted
 		if result:
-			print("deleting the downloads")
-		else:
 			# if the user presses Yes we delete the downloads
-			print("not deleting the downloads")
+			checked_rows = self.downloadsTableModel.get_all_checked_rows()
+			# obtain the path to the file for all checked_rows downloads and delete the file
+			for row in checked_rows:
+				if self.downloadWorkerThreads[row].thread.isRunning():
+					# setting for the thread the request to abort
+					self.downloadWorkerThreads[row].status = DownloadStatus.abort
+					self.interrupt_row(row)
+				else:
+					# it means that the download was paused or concluded and we only have to reset the table model
+					self.downloadsTableModel.interrupted_row(row, DownloadStatus.abort)
+					# If we decide to start again the download (which is possible since that the url is still kept)
+					# the progress of download to zero is resetted from the worker
+					self.downloadWorkerThreads[row].status = DownloadStatus.idle
+
+
+				# then try to delete the file
+				print("deleting the selected downloads {}".format(self.downloadsTableModel.get_full_path(row)))
+				# todo set the status of the download to Aborted and if started again it must be done from the start
+				try:
+					os.remove(self.downloadsTableModel.get_full_path(row))
+				except:
+					print("Could not delete file {}".format(self.downloadsTableModel.get_full_path(row)))
+
+		# if result is True it means that the user has pressed No or the x on the corner of the dialog,
+		# as default the downloads are not deleted
 
 	@pyqtSlot()
 	def parse_url(self):
+		# todo test url such as https://gattoblabla
 		# enabling the choose save location and start download buttons when there is a URL with a valid start text
 		if self.urlLineEdit.text().startswith(("http://", "https://")) and \
 				self.startIndividualDownloadButton.isEnabled() is False:
@@ -172,7 +210,7 @@ class DownloadPage(QWidget):
 			elif platform.system() == "Darwin":
 				finder = "Reveal in Finder"
 			openExplorer = QAction(finder, self)
-			# todo maybe more actions here
+			# todo maybe more actions here like start, pause, cancel
 			context.addActions([openExplorer])
 			openExplorer.triggered.connect(self.open_explorer_item)
 			context.exec(self.downloadsTableView.mapToGlobal(clickpoint))

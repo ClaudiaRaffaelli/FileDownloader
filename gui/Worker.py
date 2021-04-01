@@ -1,9 +1,9 @@
 import os
 import time
+from enum import Enum
+
 import requests
 from pathlib import Path
-import shutil
-import tempfile
 
 from PyQt5.QtCore import QObject, pyqtSignal, pyqtSlot, QThread, Qt, QCoreApplication
 from PyQt5.QtGui import QImage, QPixmap, QIcon
@@ -11,7 +11,12 @@ from PyQt5.QtGui import QImage, QPixmap, QIcon
 import gui.Utils as utils
 
 
-# MODEL
+class DownloadStatus(Enum):
+	idle = 0
+	downloading = 1
+	pause = 2
+	abort = 3
+	complete = 4
 
 
 class Worker(QObject):
@@ -19,7 +24,8 @@ class Worker(QObject):
 	download_started = pyqtSignal(int, int)
 	download_update = pyqtSignal(int, int, str)
 	download_completed = pyqtSignal(int, int)
-	download_paused = pyqtSignal(int)
+	download_interrupted = pyqtSignal(int, DownloadStatus)
+	download_restarted = pyqtSignal(int)
 
 	def __init__(self, parent=None):
 		super(QObject, self).__init__(parent)
@@ -29,7 +35,7 @@ class Worker(QObject):
 		self.threadId = -1
 		self.initialized = False
 		self.lengthDownload = -1
-		# todo maybe set thread id as a name of thread
+		self.status = DownloadStatus.idle
 
 	def start_download(self, thread_id, filepath, url):
 		# if the user has not set where to save the file, it will be saved in a default directory
@@ -51,6 +57,8 @@ class Worker(QObject):
 		# bytes of downloads already downloaded
 		self.downloaded_size = 0
 
+		self.status = DownloadStatus.downloading
+
 		self.moveToThread(self.thread)
 		self.thread.started.connect(self.download)
 		self.thread.start()
@@ -65,18 +73,26 @@ class Worker(QObject):
 			# getting the file size (bytes) in order to know where to re-start downloading
 			self.resume_position = os.stat(self.completePath).st_size
 		else:
+			# if it doesn't it means that the download has been deleted/moved externally or the downloaded was
+			# deleted from button. In any case, we re-start from the beginning of the download, and reset any progress
 			# start from the beginning
 			self.resume_position = 0
+			# bytes of downloads already downloaded
+			self.downloaded_size = 0
 
+		self.download_restarted.emit(self.threadId)
+
+		self.status = DownloadStatus.downloading
 		self.moveToThread(self.thread)
 		self.thread.start()
 
-		# todo qua un segnale che ho iniziato il resume
 		# todo investigare come mai non sempre ripartono bene i downloads. Come riprodurre: apk link senza specificare
 		#  il percorso, parte, pausa, faccio ripartire, concluso ma non lo era.
+		# todo ecco come:
+		#  - rinomina un file quando ce n'era già uno in quella posizione e premi Start Download
+		#  - magari impedisci anche che si scarichi una stessa url
 
 	def download(self):
-		# todo signal of end download that deletes the model object from the array in downloadPage
 
 		with requests.Session() as session:
 
@@ -99,14 +115,18 @@ class Worker(QObject):
 				start = time.time()
 				# the chunk size downloaded at a time is of 1MiB
 				for chunk in response.iter_content(chunk_size=1024 * 1024):
-					# if the download has not been set to pause we continue the download, otherwise the thread returns
+					# if the download has not been set to pause or aborted we continue the download,
+					# otherwise the thread returns
 					if QThread.currentThread().isInterruptionRequested():
-						print("download paused")
-						self.download_paused.emit(self.threadId)
+						print("download interrupted with status {}".format(self.status))
+						self.download_interrupted.emit(self.threadId, self.status)
+						# resetting the status to idle
+						self.status = DownloadStatus.idle
 						QThread.currentThread().quit()
 						return
 					else:
 						self.downloaded_size += len(chunk)
+						# todo start download, pause, restart, the speed is way too high
 						self.download_update.emit(self.threadId, self.downloaded_size,
 							utils.speed_calculator(self.downloaded_size, time.time() - start))
 						fd.write(chunk)
@@ -116,4 +136,5 @@ class Worker(QObject):
 		# when the file has been downloaded we quit the thread and send a signal of finish that also sets the downloaded
 		# size. If the size was unknown now it is not
 		self.download_completed.emit(self.threadId, self.downloaded_size)
+		self.status = DownloadStatus.complete
 		QThread.currentThread().quit()

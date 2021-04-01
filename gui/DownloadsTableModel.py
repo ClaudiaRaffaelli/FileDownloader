@@ -5,6 +5,7 @@ from PyQt5.QtWidgets import QProgressBar
 
 import gui.Utils as utils
 from gui.Utils import CustomRole
+from gui.Worker import DownloadStatus
 
 
 class DownloadsTableModel(QStandardItemModel):
@@ -31,7 +32,7 @@ class DownloadsTableModel(QStandardItemModel):
 		dim_item = QStandardItem("Unknown")
 		# here we will be holding the non-decorated dimension in bytes, it will be useful when updating the progress bar
 		dim_item.setData(None, Qt.UserRole + CustomRole.plain_dimension)
-		status_item = QStandardItem("Starting ...")
+		status_item = QStandardItem("Starting...")
 		speed_item = QStandardItem("0 B/s")
 		downloaded_item = QStandardItem("0 B")
 		progress_item = QStandardItem()
@@ -43,7 +44,7 @@ class DownloadsTableModel(QStandardItemModel):
 		# initialize the row of download with the size of the download
 		self.setData(self.index(row, 1), utils.size_converter(dimension))
 		self.setData(self.index(row, 1), dimension, Qt.UserRole + CustomRole.plain_dimension)
-		self.setData(self.index(row, 2), "Downloading ...")
+		self.setData(self.index(row, 2), "Downloading...")
 
 	@pyqtSlot(int, int, str)
 	def update_data_to_table(self, row, downloaded_size, speed):
@@ -68,11 +69,27 @@ class DownloadsTableModel(QStandardItemModel):
 		# downloads that do not have a known length at first displays a full bar at the end
 		self.setData(self.index(row, 5), 100, Qt.UserRole + CustomRole.progress_bar)
 
+	@pyqtSlot(int, DownloadStatus)
+	def interrupted_row(self, row, status):
+		print(status)
+		if status == DownloadStatus.pause:
+			# setting the status of the download row as paused
+			self.setData(self.index(row, 2), "Paused")
+			self.setData(self.index(row, 3), "-")
+		elif status == DownloadStatus.abort:
+			# setting the new status
+			self.setData(self.index(row, 2), "Aborted")
+			# setting to zero the amount of downloaded data
+			self.setData(self.index(row, 4), utils.size_converter(0))
+			# re-setting the progress bar
+			self.setData(self.index(row, 5), 0, Qt.UserRole + CustomRole.progress_bar)
+			# re-set the speed
+			self.setData(self.index(row, 3), "-")
+
 	@pyqtSlot(int)
-	def paused_row(self, row):
-		# setting the status of the download row as completed
-		self.setData(self.index(row, 2), "Paused")
-		self.setData(self.index(row, 3), "-")
+	def restarted_row(self, row):
+		# setting the status of the download row as started again
+		self.setData(self.index(row, 2), "Downloading...")
 
 	def select_all(self):
 		for row in range(0, self.rowCount()):
@@ -93,5 +110,9 @@ class DownloadsTableModel(QStandardItemModel):
 			if self.index(row, 0).data(Qt.CheckStateRole) == Qt.Checked:
 				checked_rows.append(row)
 		return checked_rows
+
+	def get_full_path(self, row):
+		return self.index(row, 0).data(Qt.UserRole + CustomRole.full_path)
+
 
 
