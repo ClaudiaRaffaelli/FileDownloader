@@ -28,6 +28,10 @@ class DownloadPage(QWidget):
 	#  La history la inizializzo appena apro con le cose di un json
 	#  Il json lo riempio ad ogni uscita del programma. Viene chiesto se voglio uscire
 
+
+	# todo quando carico le cose da json prima controllo che il path sia valido e il file non sia stato spostato mentre
+	#  il programma era chiuso
+
 	def __init__(self, parent=None):
 		super(DownloadPage, self).__init__(parent)
 		uic.loadUi("gui/ui/downloadWidget.ui", self)
@@ -194,7 +198,7 @@ class DownloadPage(QWidget):
 
 	@pyqtSlot()
 	def parse_url(self):
-		# todo test url such as https://gattoblabla
+		# todo url such as https://gattoblabla CRASHA CORREGGI ASSOLUTAMENTE
 		# enabling the choose save location and start download buttons when there is a URL with a valid start text
 		if self.urlLineEdit.text().startswith(("http://", "https://")) and \
 				self.startIndividualDownloadButton.isEnabled() is False:

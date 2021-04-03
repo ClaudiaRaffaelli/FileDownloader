@@ -21,3 +21,5 @@ class CustomRole:
 	url = 1
 	progress_bar = 2
 	plain_dimension = 3
+	start_time = 4
+	end_time = 5

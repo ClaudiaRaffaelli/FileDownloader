@@ -1,3 +1,4 @@
+import datetime
 from PyQt5.QtGui import QStandardItemModel, QIcon, QStandardItem
 from PyQt5.QtCore import Qt, pyqtSignal, pyqtSlot, QModelIndex
 
@@ -28,6 +29,10 @@ class DownloadsTableModel(QStandardItemModel):
 		# adding the full path to the item in order to call the "reveal in finder" later on
 		name_item.setData(fullpath, Qt.UserRole + CustomRole.full_path)
 		name_item.setData(Qt.Checked, Qt.CheckStateRole)
+		time = datetime.datetime.now()
+		name_item.setData(
+			"{}-{}-{} {}:{}:{}".format(time.day, time.month, time.year, time.hour, time.minute, time.second),
+			Qt.UserRole + CustomRole.start_time)
 
 		dim_item = QStandardItem("Unknown")
 		# here we will be holding the non-decorated dimension in bytes, it will be useful when updating the progress bar
@@ -45,6 +50,7 @@ class DownloadsTableModel(QStandardItemModel):
 		self.setData(self.index(row, 1), utils.size_converter(dimension))
 		self.setData(self.index(row, 1), dimension, Qt.UserRole + CustomRole.plain_dimension)
 		self.setData(self.index(row, 2), "Downloading...")
+		# todo downloading is not written if the dimension is unknown
 
 	@pyqtSlot(int, int, str)
 	def update_data_to_table(self, row, downloaded_size, speed):
@@ -57,7 +63,7 @@ class DownloadsTableModel(QStandardItemModel):
 		plain_dimension = self.data(self.index(row, 1), Qt.UserRole + CustomRole.plain_dimension)
 		if plain_dimension is not None:
 			self.setData(self.index(row, 5), downloaded_size * 100 / int(plain_dimension),
-				Qt.UserRole + CustomRole.progress_bar)
+						 Qt.UserRole + CustomRole.progress_bar)
 
 	@pyqtSlot(int, int)
 	def completed_row(self, row, download_size):
@@ -65,9 +71,19 @@ class DownloadsTableModel(QStandardItemModel):
 		self.setData(self.index(row, 2), "Completed")
 		self.setData(self.index(row, 3), "-")
 		self.setData(self.index(row, 1), utils.size_converter(download_size))
+		# also updating the plain dimension (maybe first was unknown)
+		self.setData(self.index(row, 1), download_size, Qt.UserRole + CustomRole.plain_dimension)
 		# setting the progress bar to completed when the download is finished ensures that even the progress bar for
 		# downloads that do not have a known length at first displays a full bar at the end
 		self.setData(self.index(row, 5), 100, Qt.UserRole + CustomRole.progress_bar)
+		# setting also the end time of download
+		time = datetime.datetime.now()
+		self.setData(
+			self.index(row, 0),
+			"{}-{}-{} {}:{}:{}".format(time.day, time.month, time.year, time.hour, time.minute, time.second),
+			Qt.UserRole + CustomRole.end_time)
+
+	# todo valuta se mettere lo end time of download anche ad abort
 
 	@pyqtSlot(int, DownloadStatus)
 	def interrupted_row(self, row, status):
@@ -115,5 +131,20 @@ class DownloadsTableModel(QStandardItemModel):
 	def get_full_path(self, row):
 		return self.index(row, 0).data(Qt.UserRole + CustomRole.full_path)
 
+	def save_model(self, start_i):
+		# i indicates the first key. If the json is new or there are no downloads i is 0, otherwise is a number >0
+		data_in_model = {}
+		for row in range(0, self.rowCount()):
+			data = {
+				"name": self.index(row, 0).data(),
+				"path": self.index(row, 0).data(Qt.UserRole + CustomRole.full_path),
+				"dimension": self.index(row, 1).data(Qt.UserRole + CustomRole.plain_dimension),
+				"progress": self.index(row, 4).data(),
+				"time_start": self.index(row, 0).data(Qt.UserRole + CustomRole.start_time),
+				"time_end": self.index(row, 0).data(Qt.UserRole + CustomRole.end_time),
+				"status": self.index(row, 2).data()
+			}
+			data_in_model[start_i] = data
+			start_i += 1
 
-
+		return data_in_model

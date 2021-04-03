@@ -1,4 +1,5 @@
 from sys import argv, exit
+import os, json
 
 from PyQt5 import uic
 from PyQt5.QtCore import Qt
@@ -37,6 +38,19 @@ class MainWindowUIClass(QMainWindow):
 		result = close_dialog.exec()
 
 		if result:
+			# todo updating the download data
+			# qui ci metto tutti i record della downloadTableView con tutti i dati che servono per ripristinare la
+			# vista.
+			# if the history json already exists, we only update it with the new data
+			# (some download that was in progress now maybe it is over and has changed status)
+			if os.path.exists("./UserHistory.json"):
+				print("esiste")
+			else:
+				# if it doesn't exist we create the json and insert the data
+				with open('./UserHistory.json', 'w') as outfile:
+					data_in_model = self.downloadPage.downloadsTableModel.save_model(start_i=0)
+					json.dump(data_in_model, outfile)
+
 			closeEvent.accept()
 		else:
 			closeEvent.ignore()
