@@ -5,6 +5,8 @@ from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QApplication, QMainWindow
 
 from gui.DownloadPage import DownloadPage
+from gui.HistoryPage import HistoryPage
+from gui.CloseDialog import CloseDialog
 
 # todo possibility to change the file name with double click and enter
 # todo possibility to change the location where the file will be saved
@@ -20,10 +22,24 @@ class MainWindowUIClass(QMainWindow):
 
 		# creating the content of the tabs
 		self.downloadPage = DownloadPage()
+		self.historyPage = HistoryPage()
 
 		# detecting when the user changes tab
 		#self.tabWidget.currentChanged.connect(self.onChange)
-		self.mainViewIndex = self.tabWidget.addTab(self.downloadPage, "Download page")
+		self.tabWidget.addTab(self.downloadPage, "Download page")
+		self.tabWidget.addTab(self.historyPage, "History page")
+
+	# handle close event
+	def closeEvent(self, closeEvent):
+
+		# asking the user if they really want to exit and stop all downloads
+		close_dialog = CloseDialog(None)
+		result = close_dialog.exec()
+
+		if result:
+			closeEvent.accept()
+		else:
+			closeEvent.ignore()
 
 
 if __name__ == '__main__':

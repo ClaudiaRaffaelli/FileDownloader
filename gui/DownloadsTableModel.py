@@ -77,6 +77,7 @@ class DownloadsTableModel(QStandardItemModel):
 			self.setData(self.index(row, 2), "Paused")
 			self.setData(self.index(row, 3), "-")
 		elif status == DownloadStatus.abort:
+
 			# setting the new status
 			self.setData(self.index(row, 2), "Aborted")
 			# setting to zero the amount of downloaded data

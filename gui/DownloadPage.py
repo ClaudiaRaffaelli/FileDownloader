@@ -23,6 +23,11 @@ class DownloadPage(QWidget):
 	# todo pdf are not downloading why?
 	# https://e-l.unifi.it/pluginfile.php/1123757/mod_resource/content/4/DownloadManager.pdf
 
+	# todo mi salvo in una variabile ogni volta che un download viene completato e magari mi tengo anche che download
+	#  era. Quando faccio il click sulla history vedo se ci sono novità e le prendo, sennò nulla.
+	#  La history la inizializzo appena apro con le cose di un json
+	#  Il json lo riempio ad ogni uscita del programma. Viene chiesto se voglio uscire
+
 	def __init__(self, parent=None):
 		super(DownloadPage, self).__init__(parent)
 		uic.loadUi("gui/ui/downloadWidget.ui", self)
@@ -31,6 +36,7 @@ class DownloadPage(QWidget):
 		self.downloadsTableModel = DownloadsTableModel()
 		self.downloadsTableView = QTableView()
 		self.downloadsTableView.setSortingEnabled(True)
+		self.downloadsTableView.setSelectionBehavior(QTableView.SelectRows)
 
 		# Init table view
 		self.downloadsTableView.setModel(self.downloadsTableModel)
