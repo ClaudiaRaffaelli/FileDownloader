@@ -16,7 +16,6 @@ class ProgressBarDelegate(QStyledItemDelegate):
         opt.minimum = 0
         opt.maximum = 100
         opt.progress = progress
-        # TODO IMPORTANT CHECK PROGRESS BAR ON UBUNTU (ON MAC DOESN'T SHOW TEXT)
         opt.text = "{}%".format(progress)
         opt.textVisible = True
         QApplication.style().drawControl(QStyle.CE_ProgressBar, opt, painter)

@@ -38,7 +38,6 @@ class HistoryPage(QWidget):
 
 	@pyqtSlot()
 	def empty_history(self):
-		# todo disattiva e attiva pulsante a seconda che ci sia qualcosa da cancellare o meno
 		# deleting the whole model after that the user has pressed the button of delete history and confirmed
 		# asking the user
 		cancel_dialog = EraseHistoryDialog(None)
@@ -52,6 +51,7 @@ class HistoryPage(QWidget):
 				os.remove("./UserHistory.json")
 			except:
 				print("No history to delete")
+			self.deleteHistoryButton.setEnabled(False)
 
 	@pyqtSlot(QPoint)
 	def context_menu_triggered_history_table(self, clickpoint):
@@ -72,8 +72,9 @@ class HistoryPage(QWidget):
 			path = currentItem.data(Qt.UserRole + CustomRole.full_path)
 			if not os.path.exists(path):
 				openExplorer.setEnabled(False)
-				# todo se sposto una download che è nella history quando il programma è aperto la action è
-				#  disabilitata ma lo stato non è settato a Moved
+				# if the file does not exist anymore we set the status as Moved passing the index at clickpoint
+				self.historyTableModel.set_data_moved(index)
+
 			context.addActions([openExplorer])
 			openExplorer.triggered.connect(self.open_explorer_item)
 			context.exec(self.historyTableView.mapToGlobal(clickpoint))

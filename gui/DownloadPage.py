@@ -22,9 +22,6 @@ class DownloadPage(QWidget):
 	# https://github.com/ClaudiaRaffaelli/Cindy-s-Bad-Luck-BLS-VR/releases/download/v1.0.2/BLS.apk
 	# https://pbs.twimg.com/profile_images/638746415901114368/e4h_VW4A.png
 
-	# todo update history whenever I click on the tab with new data. I can do this by keeping a value whenever a file
-	#  changes status to completed (or aborted?)
-
 	def __init__(self, parent=None):
 		super(DownloadPage, self).__init__(parent)
 		uic.loadUi("gui/ui/downloadWidget.ui", self)
@@ -135,9 +132,7 @@ class DownloadPage(QWidget):
 		dialog.setOption(QFileDialog.DontUseNativeDialog, True)
 		dialog.setOption(QFileDialog.DontResolveSymlinks, True)
 		dialog.setFileMode(QFileDialog.AnyFile)
-		# todo activate the commented line, use the following only for debug
 		dialog.setDirectory("./Downloads/")
-		# dialog.setDirectory(QDir.homePath())
 		# as default the downloaded file will be called with the original file name but it can be changed by the user
 		url = self.urlLineEdit.text()
 		filename = url.split('/')[-1]
@@ -233,7 +228,6 @@ class DownloadPage(QWidget):
 			elif platform.system() == "Darwin":
 				finder = "Reveal in Finder"
 			openExplorer = QAction(finder, self)
-			# todo maybe more actions here like start, pause, cancel
 			context.addActions([openExplorer])
 			openExplorer.triggered.connect(self.open_explorer_item)
 			context.exec(self.downloadsTableView.mapToGlobal(clickpoint))

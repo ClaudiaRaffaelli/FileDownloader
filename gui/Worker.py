@@ -38,7 +38,7 @@ class Worker(QObject):
 		# if the user has not set where to save the file, it will be saved in a default directory
 		if filepath == "":
 			# creating the folder where to save the files as default if it doesn't exists
-			Path("../Downloads").mkdir(parents=True, exist_ok=True)
+			Path("./Downloads").mkdir(parents=True, exist_ok=True)
 
 			# also by default the file is saved in the Download directory
 			self.completePath = "./Downloads/" + url.split('/')[-1]
@@ -87,8 +87,6 @@ class Worker(QObject):
 			self.moveToThread(self.thread)
 			self.thread.started.connect(self.download)
 			self.thread.start()
-			print("resume position")
-			print(self.resume_position)
 			if self.resume_position != 0:
 				self.initialized = True
 		else:
@@ -99,14 +97,7 @@ class Worker(QObject):
 	def download(self):
 
 		with requests.Session() as session:
-			print("resume position")
-			print(self.resume_position)
 			response = session.get(self.url, stream=True, headers={"Range": "bytes={}-".format(self.resume_position)})
-			print("the content lenght")
-			try:
-				print(response.headers['Content-Length'])
-			except:
-				print("non la ha")
 
 			# only at the first start of the download it is set the size of it
 			if not self.initialized:

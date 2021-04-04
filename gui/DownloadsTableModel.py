@@ -49,7 +49,6 @@ class DownloadsTableModel(QStandardItemModel):
 		self.setData(self.index(row, 1), utils.size_converter(dimension))
 		self.setData(self.index(row, 1), dimension, Qt.UserRole + CustomRole.plain_dimension)
 		self.setData(self.index(row, 2), "Downloading...")
-		# todo downloading is not written if the dimension is unknown
 
 	@pyqtSlot(int, int, str)
 	def update_data_to_table(self, row, downloaded_size, speed):

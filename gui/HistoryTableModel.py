@@ -46,3 +46,8 @@ class HistoryTableModel(QStandardItemModel):
 	def delete_all(self):
 		# deletes from the model all the data except headers
 		self.setRowCount(0)
+
+	def set_data_moved(self, index):
+		self.setData(self.index(index.row(), 2), "Moved")
+		self.setData(self.index(index.row(), 2), QColor(Qt.red), Qt.ForegroundRole)
+

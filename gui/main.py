@@ -40,8 +40,6 @@ class MainWindowUIClass(QMainWindow):
 			with open('./UserHistory.json') as json_file:
 				data = json.load(json_file)
 				for id_row, row_content in data.items():
-					print(id_row)
-					print(row_content)
 					if row_content["status"] == "Completed" or row_content["status"] == "Aborted":
 						# if the download is completed or aborted we only want to see it in the history
 						self.historyPage.historyTableModel.insert_row(
@@ -58,6 +56,10 @@ class MainWindowUIClass(QMainWindow):
 								row_content["name"], row_content["path"], row_content["url"], row_content["dimension"],
 								row_content["plain_progress"], row_content["time_start"],
 								row_content["status"])
+
+				# if nothing has been inserted in the history page, we set the button to delete history as not enabled
+				if self.historyPage.historyTableModel.rowCount() == 0:
+					self.historyPage.deleteHistoryButton.setEnabled(False)
 			self.lenJson = len(data)
 
 	# handle close event
@@ -71,7 +73,6 @@ class MainWindowUIClass(QMainWindow):
 			# if the history json already exists, we only update it with the new data
 			# (some download that was in progress now maybe it is over and has changed status)
 			if os.path.exists("./UserHistory.json"):
-				print("esiste")
 				# reading the file
 				with open('./UserHistory.json', 'r') as infile:
 					json_data = json.load(infile)
@@ -86,7 +87,6 @@ class MainWindowUIClass(QMainWindow):
 						row += 1
 
 					# getting the new downloads that are not in the json yet
-					print(len(json_data))
 					# len(self.in_progress_data) stores the amount of old row of unfinished downloads there
 					# are in the model. This rows will be ignored
 					data_in_model = self.downloadPage.downloadsTableModel.save_model(
