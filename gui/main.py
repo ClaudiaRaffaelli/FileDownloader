@@ -1,13 +1,14 @@
+import json
+import os
 from sys import argv, exit
-import os, json
 
 from PyQt5 import uic
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QApplication, QMainWindow
 
+from gui.CloseDialog import CloseDialog
 from gui.DownloadPage import DownloadPage
 from gui.HistoryPage import HistoryPage
-from gui.CloseDialog import CloseDialog
 from gui.Utils import CustomRole
 
 
@@ -34,6 +35,11 @@ class MainWindowUIClass(QMainWindow):
 
 		self.initialization()
 
+		# setting the stylesheet
+		stylesheet_file = "gui/stylesheet.txt"
+		with open(stylesheet_file, "r") as fh:
+			self.setStyleSheet(fh.read())
+
 	def initialization(self):
 		# read data from history if existing
 		if os.path.exists("./UserHistory.json"):
@@ -57,10 +63,11 @@ class MainWindowUIClass(QMainWindow):
 								row_content["plain_progress"], row_content["time_start"],
 								row_content["status"])
 
-				# if nothing has been inserted in the history page, we set the button to delete history as not enabled
-				if self.historyPage.historyTableModel.rowCount() == 0:
-					self.historyPage.deleteHistoryButton.setEnabled(False)
 			self.lenJson = len(data)
+
+		# if nothing has been inserted in the history page, we set the button to delete history as not enabled
+		if self.historyPage.historyTableModel.rowCount() == 0:
+			self.historyPage.deleteHistoryButton.setEnabled(False)
 
 	# handle close event
 	def closeEvent(self, closeEvent):

@@ -26,7 +26,10 @@ class HistoryTableModel(QStandardItemModel):
 		name_item.setData(full_path, Qt.UserRole + CustomRole.full_path)
 		name_item.setData(time_started, Qt.UserRole + CustomRole.start_time)
 
-		dim_item = QStandardItem(utils.size_converter(dimension))
+		if dimension is None:
+			dim_item = QStandardItem(utils.size_converter(0))
+		else:
+			dim_item = QStandardItem(utils.size_converter(dimension))
 		time_started_item = QStandardItem(time_started)
 		time_completed_item = QStandardItem(time_completed)
 

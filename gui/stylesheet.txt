@@ -1,0 +1,45 @@
+
+/* 						Tabs: 						*/
+QTabWidget::tab-bar {
+	left: 0px;
+}
+
+QTabBar::tab {
+    background: #6A95BA;
+    border: 2px solid #C4C4C3;
+    border-bottom-color: #C2C7CB; /* same as the pane color */
+    border-top-left-radius:10px;
+    border-top-right-radius:10px;
+    min-width: 20ex;
+    padding: 4px;
+    border-color: #F7F9FB;
+}
+QTabBar::tab:selected, QTabBar::tab:hover {
+    background: #7BAACA;
+}
+QTabBar::tab:selected {
+    border-bottom-color: #C2C7CB; /* same as pane color */
+    background: #96BAD9;
+}
+QTabBar::tab:!selected {
+    margin-top: 2px; /* make non-selected tabs look smaller */
+    color: #ffffff;
+}
+
+QTabBar::tab:!enabled {
+    background-color: gray;
+}
+
+
+/*					Background of page							*/
+
+QMainWindow {
+	background-color: #e6f0f7;
+}
+
+
+/*					Background of dialogs							*/
+
+QDialog{
+	background-color: #e6f0f7;
+}

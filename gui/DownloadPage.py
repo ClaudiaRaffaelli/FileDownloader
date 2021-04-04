@@ -16,11 +16,12 @@ from gui.Worker import DownloadStatus
 
 
 class DownloadPage(QWidget):
+	# Links used for testing
 	# does not have content-length header:
 	# https://github.com/ClaudiaRaffaelli/Cindy-s-Bad-Luck-BLS-VR/archive/refs/tags/v1.0.2.zip
 	# does have content-length header:
 	# https://github.com/ClaudiaRaffaelli/Cindy-s-Bad-Luck-BLS-VR/releases/download/v1.0.2/BLS.apk
-	# https://pbs.twimg.com/profile_images/638746415901114368/e4h_VW4A.png
+	# https://hips.hearstapps.com/hmg-prod.s3.amazonaws.com/images/close-up-of-cat-wearing-sunglasses-while-sitting-royalty-free-image-1571755145.jpg
 
 	def __init__(self, parent=None):
 		super(DownloadPage, self).__init__(parent)

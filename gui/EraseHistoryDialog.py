@@ -11,3 +11,8 @@ class EraseHistoryDialog(QDialog):
         # setting the cancel button as default
         self.buttonBox.buttons()[0].setAutoDefault(False)
         self.buttonBox.buttons()[1].setDefault(True)
+
+        # setting the stylesheet
+        stylesheet_file = "gui/stylesheet.txt"
+        with open(stylesheet_file, "r") as fh:
+            self.setStyleSheet(fh.read())
