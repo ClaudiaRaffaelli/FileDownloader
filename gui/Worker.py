@@ -37,7 +37,7 @@ class Worker(QObject):
 		self.lengthDownload = -1
 		self.status = DownloadStatus.idle
 
-	def start_download(self, thread_id, filepath, url):
+	def init_download(self, thread_id, filepath, url, start):
 		# if the user has not set where to save the file, it will be saved in a default directory
 		if filepath == "":
 			# creating the folder where to save the files as default if it doesn't exists
@@ -58,7 +58,10 @@ class Worker(QObject):
 		self.downloaded_size = 0
 
 		self.status = DownloadStatus.downloading
+		if start is True:
+			self.start_download()
 
+	def start_download(self):
 		self.moveToThread(self.thread)
 		self.thread.started.connect(self.download)
 		self.thread.start()
@@ -82,9 +85,14 @@ class Worker(QObject):
 
 		self.download_restarted.emit(self.threadId)
 
-		self.status = DownloadStatus.downloading
-		self.moveToThread(self.thread)
-		self.thread.start()
+		if not self.initialized:
+			self.moveToThread(self.thread)
+			self.thread.started.connect(self.download)
+			self.thread.start()
+		else:
+			self.status = DownloadStatus.downloading
+			self.moveToThread(self.thread)
+			self.thread.start()
 
 		# todo investigare come mai non sempre ripartono bene i downloads. Come riprodurre: apk link senza specificare
 		#  il percorso, parte, pausa, faccio ripartire, concluso ma non lo era.

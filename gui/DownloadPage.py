@@ -28,7 +28,6 @@ class DownloadPage(QWidget):
 	#  La history la inizializzo appena apro con le cose di un json
 	#  Il json lo riempio ad ogni uscita del programma. Viene chiesto se voglio uscire
 
-
 	# todo quando carico le cose da json prima controllo che il path sia valido e il file non sia stato spostato mentre
 	#  il programma era chiuso
 
@@ -82,7 +81,9 @@ class DownloadPage(QWidget):
 
 		# taking the url from the lineEdit
 		url = self.urlLineEdit.text()
+		self.init_download(url, saving_location="")
 
+	def init_download(self, url, saving_location):
 		# creating the worker that will download
 		worker = Worker()
 		# putting the worker for this download in the array of worker threads
@@ -104,8 +105,14 @@ class DownloadPage(QWidget):
 
 		# todo change icon of stop with trash can
 
-		# starting the worker assigning an ID
-		worker.start_download(thread_id=len(self.downloadWorkerThreads) - 1, filepath=self.savingLocation, url=url)
+		if saving_location == "":
+			# starting the worker assigning an ID
+			worker.init_download(thread_id=len(self.downloadWorkerThreads) - 1, filepath=self.savingLocation, url=url,
+				start=True)
+		else:
+			# init the worker assigning an ID but not starting it, and setting the filepath from the json file
+			worker.init_download(thread_id=len(self.downloadWorkerThreads) - 1, filepath=saving_location, url=url,
+				start=False)
 
 		# if this is the first time start a download (there are no rows) we activate the buttons
 		if self.numCheckedRows == 0:
@@ -116,7 +123,6 @@ class DownloadPage(QWidget):
 
 	@pyqtSlot()
 	def choose_location_save(self):
-		# todo maybe write somewhere on the gui the location of saving
 		dialog = QFileDialog(self, "Choose location")
 		dialog.setOption(QFileDialog.DontUseNativeDialog, True)
 		dialog.setOption(QFileDialog.DontResolveSymlinks, True)
@@ -184,7 +190,6 @@ class DownloadPage(QWidget):
 					# the progress of download to zero is resetted from the worker
 					self.downloadWorkerThreads[row].status = DownloadStatus.idle
 
-
 				# then try to delete the file
 				print("deleting the selected downloads {}".format(self.downloadsTableModel.get_full_path(row)))
 				# todo set the status of the download to Aborted and if started again it must be done from the start
@@ -193,8 +198,8 @@ class DownloadPage(QWidget):
 				except:
 					print("Could not delete file {}".format(self.downloadsTableModel.get_full_path(row)))
 
-		# if result is True it means that the user has pressed No or the x on the corner of the dialog,
-		# as default the downloads are not deleted
+	# if result is True it means that the user has pressed No or the x on the corner of the dialog,
+	# as default the downloads are not deleted
 
 	@pyqtSlot()
 	def parse_url(self):
@@ -265,4 +270,3 @@ class DownloadPage(QWidget):
 					self.cancelSelectedDownloadButton.setEnabled(False)
 					self.pauseSelectedDownloadButton.setEnabled(False)
 					self.startSelectedDownloadButton.setEnabled(False)
-

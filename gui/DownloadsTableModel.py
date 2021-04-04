@@ -33,6 +33,7 @@ class DownloadsTableModel(QStandardItemModel):
 		name_item.setData(
 			"{}-{}-{} {}:{}:{}".format(time.day, time.month, time.year, time.hour, time.minute, time.second),
 			Qt.UserRole + CustomRole.start_time)
+		name_item.setData(url, Qt.UserRole + CustomRole.url)
 
 		dim_item = QStandardItem("Unknown")
 		# here we will be holding the non-decorated dimension in bytes, it will be useful when updating the progress bar
@@ -56,6 +57,7 @@ class DownloadsTableModel(QStandardItemModel):
 	def update_data_to_table(self, row, downloaded_size, speed):
 		# updating data of a download at specific table index
 		self.setData(self.index(row, 4), utils.size_converter(downloaded_size))
+		self.setData(self.index(row, 4), downloaded_size, Qt.UserRole + CustomRole.plain_downloaded_size)
 		self.setData(self.index(row, 3), speed)
 
 		# if the complete size of the download is known we also update the progress bar
@@ -139,12 +141,48 @@ class DownloadsTableModel(QStandardItemModel):
 				"name": self.index(row, 0).data(),
 				"path": self.index(row, 0).data(Qt.UserRole + CustomRole.full_path),
 				"dimension": self.index(row, 1).data(Qt.UserRole + CustomRole.plain_dimension),
-				"progress": self.index(row, 4).data(),
+				"plain_progress": self.index(row, 4).data(Qt.UserRole + CustomRole.plain_downloaded_size),
 				"time_start": self.index(row, 0).data(Qt.UserRole + CustomRole.start_time),
 				"time_end": self.index(row, 0).data(Qt.UserRole + CustomRole.end_time),
-				"status": self.index(row, 2).data()
+				"status": self.index(row, 2).data(),
+				"url": self.index(row, 0).data(Qt.UserRole + CustomRole.url)
 			}
 			data_in_model[start_i] = data
 			start_i += 1
 
 		return data_in_model
+
+	def insert_custom_data(self, name, fullpath, url, plain_dimension, plain_progress, time_start, time_end, status):
+		# todo time end
+		# used by the main to insert data resumed from the json
+
+		name_item = QStandardItem(name)
+		# adding the full path to the item in order to call the "reveal in finder" later on
+		name_item.setData(fullpath, Qt.UserRole + CustomRole.full_path)
+		name_item.setData(Qt.Checked, Qt.CheckStateRole)
+		name_item.setData(time_start, Qt.UserRole + CustomRole.start_time)
+		name_item.setData(url, Qt.UserRole + CustomRole.url)
+
+		if plain_dimension is None:
+			dim_item = QStandardItem("Unknown")
+		else:
+			dim_item = QStandardItem(utils.size_converter(plain_dimension))
+
+		# here we will be holding the non-decorated dimension in bytes, it will be useful when updating the progress bar
+		dim_item.setData(plain_dimension, Qt.UserRole + CustomRole.plain_dimension)
+		if status == "Downloading..." or status == "Starting...":
+			status = "Paused"
+		status_item = QStandardItem(status)
+		speed_item = QStandardItem("0 B/s")
+
+		downloaded_item = QStandardItem(utils.size_converter(plain_progress))
+		progress_item = QStandardItem()
+		# todo barra
+		if plain_dimension is None:
+			# todo 0 o 100 a seconda che sia finito o no
+			progress_item.setData(0, Qt.UserRole + CustomRole.progress_bar)
+		else:
+			progress_item.setData(plain_progress * 100 / int(plain_dimension), Qt.UserRole + CustomRole.progress_bar)
+		self.appendRow([name_item, dim_item, status_item, speed_item, downloaded_item, progress_item])
+
+

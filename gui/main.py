@@ -30,6 +30,33 @@ class MainWindowUIClass(QMainWindow):
 		self.tabWidget.addTab(self.downloadPage, "Download page")
 		self.tabWidget.addTab(self.historyPage, "History page")
 
+		# here is stored the row id (from history) of the rows that now are displayed in downloadPage but come from the
+		# unfinished downloads from history
+		self.in_progress_data = []
+
+		self.initialization()
+
+	def initialization(self):
+		# read data from history if existing
+		if os.path.exists("./UserHistory.json"):
+			with open('./UserHistory.json') as json_file:
+				data = json.load(json_file)
+				for id_row, row_content in data.items():
+					print(id_row)
+					print(row_content)
+					# todo continua qui
+					if row_content["status"] == "Completed" or row_content["status"] == "Aborted":
+						# if the download is completed or aborted we only want to see it in the history
+						# todo load nella history
+						pass
+					else:
+						self.downloadPage.init_download(url=row_content["url"], saving_location=row_content["path"])
+						self.downloadPage.downloadsTableModel.insert_custom_data(
+							row_content["name"], row_content["path"], row_content["url"], row_content["dimension"],
+							row_content["plain_progress"], row_content["time_start"], row_content["time_end"],
+							row_content["status"])
+
+
 	# handle close event
 	def closeEvent(self, closeEvent):
 
