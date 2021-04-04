@@ -3,14 +3,10 @@ import os
 import subprocess
 
 from PyQt5 import uic
-from PyQt5.QtCore import pyqtSlot, Qt, QPoint, QFileInfo, QModelIndex, QRegExp
-from PyQt5.QtWidgets import QFileDialog, QMenu, QAction, QWidget, QTableView, QHeaderView, QTableWidget
-from PyQt5.QtGui import QRegExpValidator
-from gui.Worker import Worker
+from PyQt5.QtCore import pyqtSlot, Qt, QPoint, QFileInfo
+from PyQt5.QtWidgets import QMenu, QAction, QWidget, QTableView, QHeaderView, QTableWidget
 from gui.HistoryTableModel import HistoryTableModel
-from gui.ProgressBarDelegate import ProgressBarDelegate
 from gui.Utils import CustomRole
-from gui.Worker import DownloadStatus
 from gui.EraseHistoryDialog import EraseHistoryDialog
 
 

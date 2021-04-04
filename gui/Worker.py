@@ -1,12 +1,9 @@
 import os
 import time
 from enum import Enum
-
 import requests
 from pathlib import Path
-
-from PyQt5.QtCore import QObject, pyqtSignal, pyqtSlot, QThread, Qt, QCoreApplication
-from PyQt5.QtGui import QImage, QPixmap, QIcon
+from PyQt5.QtCore import QObject, pyqtSignal, QThread
 
 import gui.Utils as utils
 
@@ -75,6 +72,7 @@ class Worker(QObject):
 		if os.path.exists(self.completePath):
 			# getting the file size (bytes) in order to know where to re-start downloading
 			self.resume_position = os.stat(self.completePath).st_size
+			self.downloaded_size = self.resume_position
 		else:
 			# if it doesn't it means that the download has been deleted/moved externally or the downloaded was
 			# deleted from button. In any case, we re-start from the beginning of the download, and reset any progress
@@ -89,22 +87,26 @@ class Worker(QObject):
 			self.moveToThread(self.thread)
 			self.thread.started.connect(self.download)
 			self.thread.start()
+			print("resume position")
+			print(self.resume_position)
+			if self.resume_position != 0:
+				self.initialized = True
 		else:
 			self.status = DownloadStatus.downloading
 			self.moveToThread(self.thread)
 			self.thread.start()
 
-		# todo investigare come mai non sempre ripartono bene i downloads. Come riprodurre: apk link senza specificare
-		#  il percorso, parte, pausa, faccio ripartire, concluso ma non lo era.
-		# todo ecco come:
-		#  - rinomina un file quando ce n'era già uno in quella posizione e premi Start Download
-		#  - magari impedisci anche che si scarichi una stessa url
-
 	def download(self):
 
 		with requests.Session() as session:
-
+			print("resume position")
+			print(self.resume_position)
 			response = session.get(self.url, stream=True, headers={"Range": "bytes={}-".format(self.resume_position)})
+			print("the content lenght")
+			try:
+				print(response.headers['Content-Length'])
+			except:
+				print("non la ha")
 
 			# only at the first start of the download it is set the size of it
 			if not self.initialized:
@@ -134,7 +136,8 @@ class Worker(QObject):
 						return
 					else:
 						self.downloaded_size += len(chunk)
-						# todo start download, pause, restart, the speed is way too high
+						print("lunghezza questo chunk")
+						print(len(chunk))
 						self.download_update.emit(self.threadId, self.downloaded_size,
 							utils.speed_calculator(self.downloaded_size, time.time() - start))
 						fd.write(chunk)

@@ -10,10 +10,6 @@ from gui.HistoryPage import HistoryPage
 from gui.CloseDialog import CloseDialog
 from gui.Utils import CustomRole
 
-# todo possibility to change the file name with double click and enter
-# todo paste link directly to the page
-# todo preventing a download with same url or name to start
-
 
 class MainWindowUIClass(QMainWindow):
 
@@ -72,9 +68,6 @@ class MainWindowUIClass(QMainWindow):
 		result = close_dialog.exec()
 
 		if result:
-			# todo updating the download data
-			# qui ci metto tutti i record della downloadTableView con tutti i dati che servono per ripristinare la
-			# vista.
 			# if the history json already exists, we only update it with the new data
 			# (some download that was in progress now maybe it is over and has changed status)
 			if os.path.exists("./UserHistory.json"):

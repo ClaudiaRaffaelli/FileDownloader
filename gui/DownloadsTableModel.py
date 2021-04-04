@@ -23,7 +23,6 @@ class DownloadsTableModel(QStandardItemModel):
 
 	@pyqtSlot(str, str)
 	def add_download_to_table(self, fullpath, url):
-		# todo maybe use the url to know if this same url is already downloading
 		name_item = QStandardItem(fullpath.split('/')[-1])
 		# adding the full path to the item in order to call the "reveal in finder" later on
 		name_item.setData(fullpath, Qt.UserRole + CustomRole.full_path)
@@ -63,8 +62,13 @@ class DownloadsTableModel(QStandardItemModel):
 		# to do so we check the plain dimension in bytes
 		plain_dimension = self.data(self.index(row, 1), Qt.UserRole + CustomRole.plain_dimension)
 		if plain_dimension is not None:
-			self.setData(self.index(row, 5), downloaded_size * 100 / int(plain_dimension),
-						 Qt.UserRole + CustomRole.progress_bar)
+			# for some files if paused and started again the header content dimension can change, and we want to avoid
+			# that at some point the progress bar starts over again
+			if downloaded_size > plain_dimension:
+				self.setData(self.index(row, 5), 100, Qt.UserRole + CustomRole.progress_bar)
+			else:
+				self.setData(self.index(row, 5), downloaded_size * 100 / int(plain_dimension),
+					Qt.UserRole + CustomRole.progress_bar)
 
 	@pyqtSlot(int, int)
 	def completed_row(self, row, download_size):
@@ -175,6 +179,7 @@ class DownloadsTableModel(QStandardItemModel):
 			downloaded_item = QStandardItem(utils.size_converter(plain_progress))
 		else:
 			downloaded_item = QStandardItem("0 B")
+			plain_progress = 0
 
 		# inserting the plain progress data
 		downloaded_item.setData(plain_progress, Qt.UserRole + CustomRole.plain_downloaded_size)

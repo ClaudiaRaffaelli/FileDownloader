@@ -21,8 +21,6 @@ class DownloadPage(QWidget):
 	# does have content-length header:
 	# https://github.com/ClaudiaRaffaelli/Cindy-s-Bad-Luck-BLS-VR/releases/download/v1.0.2/BLS.apk
 	# https://pbs.twimg.com/profile_images/638746415901114368/e4h_VW4A.png
-	# todo pdf are not downloading why?
-	# https://e-l.unifi.it/pluginfile.php/1123757/mod_resource/content/4/DownloadManager.pdf
 
 	# todo update history whenever I click on the tab with new data. I can do this by keeping a value whenever a file
 	#  changes status to completed (or aborted?)
@@ -82,7 +80,8 @@ class DownloadPage(QWidget):
 			# we need to check if there is already a file with this name existing. In this case we ask the user to
 			# insert a different file name
 			# also if the user does not set a name we check if the default one is already existing
-			if os.path.exists(self.savingLocation) or os.path.exists("./Downloads/" + url.split('/')[-1]):
+			if os.path.exists(self.savingLocation) or \
+					(os.path.exists("./Downloads/" + url.split('/')[-1]) and self.savingLocation == ""):
 				self.errorLabel.setText("This file is already existing, please choose another name")
 				return
 			else:
@@ -90,8 +89,7 @@ class DownloadPage(QWidget):
 
 		# checking if this url is downloadable and in case ask the user to change it
 		try:
-			headers = requests.head(url).headers
-			downloadable = 'attachment' in headers.get('Content-Disposition', '')
+			requests.head(url).headers
 		except:
 			self.errorLabel.setText("This URL is non-downloadable, please choose another one")
 			return
@@ -204,7 +202,6 @@ class DownloadPage(QWidget):
 
 				# then try to delete the file
 				print("deleting the selected downloads {}".format(self.downloadsTableModel.get_full_path(row)))
-				# todo set the status of the download to Aborted and if started again it must be done from the start
 				try:
 					os.remove(self.downloadsTableModel.get_full_path(row))
 				except:
@@ -243,7 +240,6 @@ class DownloadPage(QWidget):
 
 	@pyqtSlot()
 	def open_explorer_item(self):
-		# todo find out what happens if you move the file
 		index = self.downloadsTableView.selectionModel().currentIndex()
 		currentItem = self.downloadsTableModel.itemFromIndex(self.downloadsTableModel.index(index.row(), 0))
 		info = QFileInfo(currentItem.data(Qt.UserRole + CustomRole.full_path))
