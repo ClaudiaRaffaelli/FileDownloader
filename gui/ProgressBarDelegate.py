@@ -1,9 +1,4 @@
-import os
-import time
-import requests
-from pathlib import Path
-
-from PyQt5.QtCore import QObject, pyqtSignal, pyqtSlot, QThread, Qt, QCoreApplication, QRect, pyqtSignal
+from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QStyle, QStyledItemDelegate, QApplication, QStyleOptionProgressBar
 from gui.Utils import CustomRole
 

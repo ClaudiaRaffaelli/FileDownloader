@@ -1,8 +1,7 @@
 import datetime
-from PyQt5.QtGui import QStandardItemModel, QIcon, QStandardItem
-from PyQt5.QtCore import Qt, pyqtSignal, pyqtSlot, QModelIndex
+from PyQt5.QtGui import QStandardItemModel, QStandardItem
+from PyQt5.QtCore import Qt, pyqtSlot
 
-from PyQt5.QtWidgets import QProgressBar
 
 import gui.Utils as utils
 from gui.Utils import CustomRole

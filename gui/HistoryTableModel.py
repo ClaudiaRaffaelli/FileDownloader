@@ -1,6 +1,6 @@
 import os
-from PyQt5.QtGui import QStandardItemModel, QIcon, QStandardItem, QColor
-from PyQt5.QtCore import Qt, pyqtSignal, pyqtSlot, QModelIndex
+from PyQt5.QtGui import QStandardItemModel, QStandardItem, QColor
+from PyQt5.QtCore import Qt
 
 
 import gui.Utils as utils
