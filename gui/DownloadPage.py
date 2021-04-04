@@ -234,7 +234,7 @@ class DownloadPage(QWidget):
 	def open_explorer_item(self):
 		# todo find out what happens if you move the file
 		index = self.downloadsTableView.selectionModel().currentIndex()
-		currentItem = self.downloadsTableView.model().itemFromIndex(index)
+		currentItem = self.downloadsTableModel.itemFromIndex(self.downloadsTableModel.index(index.row(), 0))
 		info = QFileInfo(currentItem.data(Qt.UserRole + CustomRole.full_path))
 		# revealing in Finder / Explorer / Nautilus the selected file
 		if info.isDir():

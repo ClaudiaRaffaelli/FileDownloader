@@ -175,10 +175,14 @@ class DownloadsTableModel(QStandardItemModel):
 		status_item = QStandardItem(status)
 		speed_item = QStandardItem("0 B/s")
 
+
 		if plain_progress is not None:
 			downloaded_item = QStandardItem(utils.size_converter(plain_progress))
 		else:
 			downloaded_item = QStandardItem("0 B")
+
+		# inserting the plain progress data
+		downloaded_item.setData(plain_progress, Qt.UserRole + CustomRole.plain_downloaded_size)
 		progress_item = QStandardItem()
 		# todo barra
 		if plain_dimension is None:

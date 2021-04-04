@@ -34,6 +34,8 @@ class MainWindowUIClass(QMainWindow):
 		# unfinished downloads from history
 		self.in_progress_data = []
 
+		self.lenJson = None
+
 		self.initialization()
 
 	def initialization(self):
