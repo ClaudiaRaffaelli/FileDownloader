@@ -24,7 +24,7 @@ class DownloadsTableModel(QStandardItemModel):
 
 	@pyqtSlot(str, str)
 	def add_download_to_table(self, fullpath, url):
-		# todo maybe the full url of the item with a custom role to know if this same url is already downloading
+		# todo maybe use the url to know if this same url is already downloading
 		name_item = QStandardItem(fullpath.split('/')[-1])
 		# adding the full path to the item in order to call the "reveal in finder" later on
 		name_item.setData(fullpath, Qt.UserRole + CustomRole.full_path)
@@ -133,10 +133,10 @@ class DownloadsTableModel(QStandardItemModel):
 	def get_full_path(self, row):
 		return self.index(row, 0).data(Qt.UserRole + CustomRole.full_path)
 
-	def save_model(self, start_i):
+	def save_model(self, start_i, num_old_data):
 		# i indicates the first key. If the json is new or there are no downloads i is 0, otherwise is a number >0
 		data_in_model = {}
-		for row in range(0, self.rowCount()):
+		for row in range(num_old_data, self.rowCount()):
 			data = {
 				"name": self.index(row, 0).data(),
 				"path": self.index(row, 0).data(Qt.UserRole + CustomRole.full_path),
@@ -175,7 +175,10 @@ class DownloadsTableModel(QStandardItemModel):
 		status_item = QStandardItem(status)
 		speed_item = QStandardItem("0 B/s")
 
-		downloaded_item = QStandardItem(utils.size_converter(plain_progress))
+		if plain_progress is not None:
+			downloaded_item = QStandardItem(utils.size_converter(plain_progress))
+		else:
+			downloaded_item = QStandardItem("0 B")
 		progress_item = QStandardItem()
 		# todo barra
 		if plain_dimension is None:

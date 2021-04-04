@@ -116,7 +116,7 @@
             <bool>false</bool>
            </property>
            <property name="toolTip">
-            <string>Stop selected downloads</string>
+            <string>Abort selected downloads</string>
            </property>
            <property name="text">
             <string/>

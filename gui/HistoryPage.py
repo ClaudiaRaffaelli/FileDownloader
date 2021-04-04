@@ -11,6 +11,7 @@ from gui.HistoryTableModel import HistoryTableModel
 from gui.ProgressBarDelegate import ProgressBarDelegate
 from gui.Utils import CustomRole
 from gui.Worker import DownloadStatus
+from gui.EraseHistoryDialog import EraseHistoryDialog
 
 
 class HistoryPage(QWidget):
@@ -37,5 +38,17 @@ class HistoryPage(QWidget):
 
 	@pyqtSlot()
 	def empty_history(self):
-		# todo a dialog that ask if I'm sure that I want to delete the history or I want to cancel
-		print("cancello cronologia")
+		# todo disattiva e attiva pulsante a seconda che ci sia qualcosa da cancellare o meno
+		# deleting the whole model after that the user has pressed the button of delete history and confirmed
+		# asking the user
+		cancel_dialog = EraseHistoryDialog(None)
+		result = cancel_dialog.exec()
+
+		if result:
+			# emptying the model
+			self.historyTableModel.delete_all()
+			# deleting from the file
+			try:
+				os.remove("./UserHistory.json")
+			except:
+				print("No history to delete")
