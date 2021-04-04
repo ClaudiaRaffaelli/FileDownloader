@@ -19,7 +19,6 @@ class DownloadsTableModel(QStandardItemModel):
 		self.setHeaderData(3, Qt.Horizontal, "Speed")
 		self.setHeaderData(4, Qt.Horizontal, "Downloaded")
 		self.setHeaderData(5, Qt.Horizontal, "Progress")
-		# todo reimplement header to add checkbox in order to start/stop/pause downloads at groups
 		self.parent = parent
 
 	@pyqtSlot(str, str)
@@ -84,8 +83,6 @@ class DownloadsTableModel(QStandardItemModel):
 			self.index(row, 0),
 			"{}-{}-{} {}:{}:{}".format(time.day, time.month, time.year, time.hour, time.minute, time.second),
 			Qt.UserRole + CustomRole.end_time)
-
-	# todo valuta se mettere lo end time of download anche ad abort
 
 	@pyqtSlot(int, DownloadStatus)
 	def interrupted_row(self, row, status):
@@ -152,8 +149,7 @@ class DownloadsTableModel(QStandardItemModel):
 
 		return data_in_model
 
-	def insert_custom_data(self, name, fullpath, url, plain_dimension, plain_progress, time_start, time_end, status):
-		# todo time end
+	def insert_custom_data(self, name, fullpath, url, plain_dimension, plain_progress, time_start, status):
 		# used by the main to insert data resumed from the json
 
 		name_item = QStandardItem(name)
@@ -175,7 +171,6 @@ class DownloadsTableModel(QStandardItemModel):
 		status_item = QStandardItem(status)
 		speed_item = QStandardItem("0 B/s")
 
-
 		if plain_progress is not None:
 			downloaded_item = QStandardItem(utils.size_converter(plain_progress))
 		else:
@@ -184,11 +179,12 @@ class DownloadsTableModel(QStandardItemModel):
 		# inserting the plain progress data
 		downloaded_item.setData(plain_progress, Qt.UserRole + CustomRole.plain_downloaded_size)
 		progress_item = QStandardItem()
-		# todo barra
+
 		if plain_dimension is None:
-			# todo 0 o 100 a seconda che sia finito o no
+			# if the dimension is unknown then the progress bar is set to zero
 			progress_item.setData(0, Qt.UserRole + CustomRole.progress_bar)
 		else:
+			# otherwise we set the right percentage
 			progress_item.setData(plain_progress * 100 / int(plain_dimension), Qt.UserRole + CustomRole.progress_bar)
 		self.appendRow([name_item, dim_item, status_item, speed_item, downloaded_item, progress_item])
 

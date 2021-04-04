@@ -54,8 +54,7 @@
          <item>
           <widget class="QLabel" name="label">
            <property name="text">
-            <string>Do you really want to exit and stop all downloads? 
-Any download progress will be lost.</string>
+            <string>Do you really want to exit and pause all downloads?</string>
            </property>
            <property name="alignment">
             <set>Qt::AlignCenter</set>

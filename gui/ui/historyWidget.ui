@@ -33,6 +33,9 @@
        </item>
        <item>
         <widget class="QPushButton" name="deleteHistoryButton">
+         <property name="toolTip">
+          <string>Erase all history of downloads</string>
+         </property>
          <property name="text">
           <string>Empty history</string>
          </property>

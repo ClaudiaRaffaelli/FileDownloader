@@ -18,8 +18,6 @@ class HistoryTableModel(QStandardItemModel):
 		self.setHeaderData(4, Qt.Horizontal, "Time completed")
 		self.parent = parent
 
-		#todo connetti le azioni per aprire nel finder
-
 	def insert_row(self, name, full_path, dimension, status, time_started, time_completed):
 		# loading rows from the json file
 
@@ -32,9 +30,13 @@ class HistoryTableModel(QStandardItemModel):
 		time_started_item = QStandardItem(time_started)
 		time_completed_item = QStandardItem(time_completed)
 
-		# if the path to the file doesn't exists anymore we set the status as Moved and color it red
-		if not os.path.exists(full_path):
+		# if the path to the file doesn't exists anymore (and it was completed and not aborted)
+		# we set the status as Moved and color it red
+		if not os.path.exists(full_path) and status == "Completed":
 			status_item = QStandardItem("Moved")
+			status_item.setData(QColor(Qt.red), Qt.ForegroundRole)
+		elif status == "Aborted":
+			status_item = QStandardItem(status)
 			status_item.setData(QColor(Qt.red), Qt.ForegroundRole)
 		else:
 			status_item = QStandardItem(status)

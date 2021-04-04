@@ -5,6 +5,14 @@
   <property name="windowModality">
    <enum>Qt::WindowModal</enum>
   </property>
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>431</width>
+    <height>166</height>
+   </rect>
+  </property>
   <property name="windowTitle">
    <string>Delete?</string>
   </property>
@@ -46,7 +54,7 @@
          <item>
           <widget class="QLabel" name="label">
            <property name="text">
-            <string>Are you sure you want to delete from disk all selected downloads? 
+            <string>Are you sure you want to erase from disk all selected downloads? 
 Any progress will be lost.</string>
            </property>
            <property name="alignment">

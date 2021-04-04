@@ -1,6 +1,7 @@
 import platform
 import os
 import subprocess
+import requests
 
 from PyQt5 import uic
 from PyQt5.QtCore import pyqtSlot, Qt, QPoint, QFileInfo, QModelIndex, QRegExp
@@ -23,13 +24,8 @@ class DownloadPage(QWidget):
 	# todo pdf are not downloading why?
 	# https://e-l.unifi.it/pluginfile.php/1123757/mod_resource/content/4/DownloadManager.pdf
 
-	# todo mi salvo in una variabile ogni volta che un download viene completato e magari mi tengo anche che download
-	#  era. Quando faccio il click sulla history vedo se ci sono novità e le prendo, sennò nulla.
-	#  La history la inizializzo appena apro con le cose di un json
-	#  Il json lo riempio ad ogni uscita del programma. Viene chiesto se voglio uscire
-
-	# todo quando carico le cose da json prima controllo che il path sia valido e il file non sia stato spostato mentre
-	#  il programma era chiuso
+	# todo update history whenever I click on the tab with new data. I can do this by keeping a value whenever a file
+	#  changes status to completed (or aborted?)
 
 	def __init__(self, parent=None):
 		super(DownloadPage, self).__init__(parent)
@@ -60,8 +56,6 @@ class DownloadPage(QWidget):
 		self.savingLocation = ""
 
 		# current threads of download
-		# todo make it a dictionary with as keys the ids of the workers 0,1,.. and value the worker object
-		#  so that when a worker has finished you can delete it without changing the indices of the dictionary (ex array)
 		self.downloadWorkerThreads = []
 
 		# validation of the input in text line for generic URLs:
@@ -77,13 +71,31 @@ class DownloadPage(QWidget):
 
 	@pyqtSlot()
 	def start_individual_download(self):
-		# todo save all in a json to maintain chronology
-
 		# taking the url from the lineEdit
 		url = self.urlLineEdit.text()
 		self.init_download(url, saving_location="")
 
 	def init_download(self, url, saving_location):
+
+		# if the saving location is not passed as input then we are not loading data from the json but, from user input
+		if saving_location == "":
+			# we need to check if there is already a file with this name existing. In this case we ask the user to
+			# insert a different file name
+			# also if the user does not set a name we check if the default one is already existing
+			if os.path.exists(self.savingLocation) or os.path.exists("./Downloads/" + url.split('/')[-1]):
+				self.errorLabel.setText("This file is already existing, please choose another name")
+				return
+			else:
+				self.errorLabel.setText("")
+
+		# checking if this url is downloadable and in case ask the user to change it
+		try:
+			headers = requests.head(url).headers
+			downloadable = 'attachment' in headers.get('Content-Disposition', '')
+		except:
+			self.errorLabel.setText("This URL is non-downloadable, please choose another one")
+			return
+
 		# creating the worker that will download
 		worker = Worker()
 		# putting the worker for this download in the array of worker threads
@@ -102,8 +114,6 @@ class DownloadPage(QWidget):
 		worker.download_interrupted.connect(self.downloadsTableModel.interrupted_row)
 		# this signal will be used to set the row as re-started a delete
 		worker.download_restarted.connect(self.downloadsTableModel.restarted_row)
-
-		# todo change icon of stop with trash can
 
 		if saving_location == "":
 			# starting the worker assigning an ID
@@ -133,6 +143,8 @@ class DownloadPage(QWidget):
 		# as default the downloaded file will be called with the original file name but it can be changed by the user
 		url = self.urlLineEdit.text()
 		filename = url.split('/')[-1]
+		# if saving location is already existing, we ask the user to change it
+
 		self.savingLocation = dialog.getSaveFileName(self, "Choose file name", filename)[0]
 
 	@pyqtSlot()
@@ -198,12 +210,11 @@ class DownloadPage(QWidget):
 				except:
 					print("Could not delete file {}".format(self.downloadsTableModel.get_full_path(row)))
 
-	# if result is True it means that the user has pressed No or the x on the corner of the dialog,
-	# as default the downloads are not deleted
+		# if result is True it means that the user has pressed No or the x on the corner of the dialog,
+		# as default the downloads are not deleted
 
 	@pyqtSlot()
 	def parse_url(self):
-		# todo url such as https://gattoblabla CRASHA CORREGGI ASSOLUTAMENTE
 		# enabling the choose save location and start download buttons when there is a URL with a valid start text
 		if self.urlLineEdit.text().startswith(("http://", "https://")) and \
 				self.startIndividualDownloadButton.isEnabled() is False:

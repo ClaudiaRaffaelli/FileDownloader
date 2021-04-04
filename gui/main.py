@@ -48,7 +48,6 @@ class MainWindowUIClass(QMainWindow):
 					print(row_content)
 					if row_content["status"] == "Completed" or row_content["status"] == "Aborted":
 						# if the download is completed or aborted we only want to see it in the history
-						# todo load nella history
 						self.historyPage.historyTableModel.insert_row(
 							row_content["name"], row_content["path"], row_content["dimension"],
 							row_content["status"], row_content["time_start"], row_content["time_end"])
@@ -61,7 +60,7 @@ class MainWindowUIClass(QMainWindow):
 							self.downloadPage.init_download(url=row_content["url"], saving_location=row_content["path"])
 							self.downloadPage.downloadsTableModel.insert_custom_data(
 								row_content["name"], row_content["path"], row_content["url"], row_content["dimension"],
-								row_content["plain_progress"], row_content["time_start"], row_content["time_end"],
+								row_content["plain_progress"], row_content["time_start"],
 								row_content["status"])
 			self.lenJson = len(data)
 

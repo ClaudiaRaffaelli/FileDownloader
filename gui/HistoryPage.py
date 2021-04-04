@@ -84,7 +84,6 @@ class HistoryPage(QWidget):
 
 	@pyqtSlot()
 	def open_explorer_item(self):
-		# todo find out what happens if you move the file
 		index = self.historyTableView.selectionModel().currentIndex()
 		currentItem = self.historyTableModel.itemFromIndex(self.historyTableModel.index(index.row(), 0))
 		info = QFileInfo(currentItem.data(Qt.UserRole + CustomRole.full_path))
