@@ -136,6 +136,9 @@ class DownloadPage(QWidget):
 			self.startSelectedDownloadButton.setEnabled(True)
 		self.numCheckedRows += 1
 
+		# resetting the name of download
+		self.savingLocation = ""
+
 	@pyqtSlot()
 	def choose_location_save(self):
 		dialog = QFileDialog(self, "Choose location")
