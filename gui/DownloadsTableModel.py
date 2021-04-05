@@ -88,7 +88,6 @@ class DownloadsTableModel(QStandardItemModel):
 
 	@pyqtSlot(int, DownloadStatus)
 	def interrupted_row(self, row, status):
-		print(status)
 		if status == DownloadStatus.pause:
 			# setting the status of the download row as paused
 			self.setData(self.index(row, 2), "Paused")
@@ -108,10 +107,6 @@ class DownloadsTableModel(QStandardItemModel):
 	def restarted_row(self, row):
 		# setting the status of the download row as started again
 		self.setData(self.index(row, 2), "Downloading...")
-
-	def select_all(self):
-		for row in range(0, self.rowCount()):
-			print(self.item(row, 1))
 
 	def toggle_checkbox(self, index):
 		# returns True if now the row is checked or False if it is unchecked

@@ -46,7 +46,6 @@ class Worker(QObject):
 			self.completePath = filepath
 
 		self.threadId = thread_id
-		print("threadID", self.threadId)
 		self.url = url
 
 		# start from the beginning
@@ -119,7 +118,7 @@ class Worker(QObject):
 					# if the download has not been set to pause or aborted we continue the download,
 					# otherwise the thread returns
 					if QThread.currentThread().isInterruptionRequested():
-						print("download interrupted with status {}".format(self.status))
+						#print("download interrupted with status {}".format(self.status))
 						self.download_interrupted.emit(self.threadId, self.status)
 						# resetting the status to idle
 						self.status = DownloadStatus.idle
@@ -127,14 +126,12 @@ class Worker(QObject):
 						return
 					else:
 						self.downloaded_size += len(chunk)
-						print("lunghezza questo chunk")
-						print(len(chunk))
 						self.download_update.emit(self.threadId, self.downloaded_size,
 							utils.speed_calculator(self.downloaded_size, time.time() - start))
 						fd.write(chunk)
 
 		# when the file has been downloaded we quit the thread
-		print("download exited")
+		# print("download exited")
 		# when the file has been downloaded we quit the thread and send a signal of finish that also sets the downloaded
 		# size. If the size was unknown now it is not
 		self.download_completed.emit(self.threadId, self.downloaded_size)

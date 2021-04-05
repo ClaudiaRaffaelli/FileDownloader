@@ -145,32 +145,23 @@ class DownloadPage(QWidget):
 	def start_resume_download(self):
 		# resume all the checked downloads if not already running nor already completed
 		checked_rows = self.downloadsTableModel.get_all_checked_rows()
-		print("le checked")
-		print(checked_rows)
 		for row in checked_rows:
-			print(self.downloadWorkerThreads[row].status)
 			if (not self.downloadWorkerThreads[row].thread.isRunning()) \
 					and (not self.downloadWorkerThreads[row].status == DownloadStatus.complete):
-				print("Aveva status {}".format(self.downloadWorkerThreads[row].status))
-				print("non è running la riga ", row, " la faccio partire")
 				self.downloadWorkerThreads[row].restart_download()
 
 	@pyqtSlot()
 	def pause_download(self):
 		# pauses all the checked downloads if not already paused
 		checked_rows = self.downloadsTableModel.get_all_checked_rows()
-		print("le checked")
-		print(checked_rows)
 		for row in checked_rows:
 			if self.downloadWorkerThreads[row].thread.isRunning():
 				# pause the download at row if it is running, asking the worker to pause
 				self.downloadWorkerThreads[row].status = DownloadStatus.pause
 				self.interrupt_row(row)
-		print("interrupt request")
 
 	def interrupt_row(self, row):
 		# status indicates how the row needs to be interrupted (if paused or aborted)
-		print("è running la riga ", row, " la fermo")
 		self.downloadWorkerThreads[row].thread.requestInterruption()
 		self.downloadWorkerThreads[row].thread.wait(2000)
 
@@ -197,7 +188,6 @@ class DownloadPage(QWidget):
 					self.downloadWorkerThreads[row].status = DownloadStatus.idle
 
 				# then try to delete the file
-				print("deleting the selected downloads {}".format(self.downloadsTableModel.get_full_path(row)))
 				try:
 					os.remove(self.downloadsTableModel.get_full_path(row))
 				except:
