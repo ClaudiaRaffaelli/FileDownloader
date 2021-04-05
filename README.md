@@ -3,7 +3,7 @@
 [![Python 3.8](https://img.shields.io/badge/python-3.8-blue.svg)](https://www.python.org/downloads/release/python-385/)
 
 ## Overview
-FileDownloader is a download manager that allows the user to specify an URL and download the attached data. Multiple downloads can be started at the same time thanks to a multithreading approch. The downloads can be paused, re-started, aborted. Also the program mantains a history of completed and aborted downloads from a previous program run. The history is displayed in a different table and can be deleted by the user at any time.
+FileDownloader is a download manager that allows the user to specify an URL and download the attached data. Multiple downloads can be started at the same time thanks to a multithreading approch. The downloads can be paused, re-started, aborted. Also the program maintains a history of completed and aborted downloads from a previous program run. The history is displayed in a different table and can be deleted by the user at any time.
 If the program is closed all downloads are paused and can be resumed at the next program opening.
 
 ## How to run the program
@@ -15,7 +15,9 @@ conda install pyqt=5.9.2
 pip install requests
 ```
 
-Always install the required dependencies when requested. 
+Always install the required dependencies when asked to. 
+
+The program can then be run from the script ```main.py``` located in the ```gui``` folder.
 
 ## Detailed features
 <p align="center">
