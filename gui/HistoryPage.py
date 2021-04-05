@@ -16,7 +16,7 @@ class HistoryPage(QWidget):
 		super(HistoryPage, self).__init__(parent)
 		uic.loadUi("gui/ui/historyWidget.ui", self)
 
-		# creating the table view for the chronology and the model that holds the data
+		# creating the table view for the history and the model that holds the data
 		self.historyTableModel = HistoryTableModel()
 		self.historyTableView = QTableView()
 		self.historyTableView.setSortingEnabled(True)

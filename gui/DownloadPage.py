@@ -16,7 +16,7 @@ from gui.Worker import DownloadStatus
 
 
 class DownloadPage(QWidget):
-	# Links used for testing
+	# Handy links for testing
 	# does not have content-length header:
 	# https://github.com/ClaudiaRaffaelli/Cindy-s-Bad-Luck-BLS-VR/archive/refs/tags/v1.0.2.zip
 	# does have content-length header:
@@ -62,6 +62,7 @@ class DownloadPage(QWidget):
 		# number of checked rows (this will activate if >0 or deactivate if ==0 the buttons of Start, Pause, Cancel
 		self.numCheckedRows = 0
 
+		# delegate to paint the progress bars
 		delegate = ProgressBarDelegate(self.downloadsTableView)
 		self.downloadsTableView.setItemDelegateForColumn(5, delegate)
 
@@ -72,6 +73,14 @@ class DownloadPage(QWidget):
 		self.init_download(url, saving_location="")
 
 	def init_download(self, url, saving_location):
+		"""
+		This method can be called both from the DownloadPage when the user presses the start button and from the main.
+		In this latter case it is because an un-finished download from a previous opening of the program needs to be
+		re-loaded in the download table view.
+		:param url: is the url of download
+		:param saving_location: is where the file will be saved. This string is full only if the download is re-loaded
+								from the json of history
+		"""
 
 		# if the saving location is not passed as input then we are not loading data from the json but, from user input
 		if saving_location == "":
@@ -120,7 +129,7 @@ class DownloadPage(QWidget):
 			worker.init_download(thread_id=len(self.downloadWorkerThreads) - 1, filepath=saving_location, url=url,
 				start=False)
 
-		# if this is the first time start a download (there are no rows) we activate the buttons
+		# if this is the first time we start a download (there are no rows) we activate the buttons
 		if self.numCheckedRows == 0:
 			self.cancelSelectedDownloadButton.setEnabled(True)
 			self.pauseSelectedDownloadButton.setEnabled(True)
@@ -137,7 +146,6 @@ class DownloadPage(QWidget):
 		# as default the downloaded file will be called with the original file name but it can be changed by the user
 		url = self.urlLineEdit.text()
 		filename = url.split('/')[-1]
-		# if saving location is already existing, we ask the user to change it
 
 		self.savingLocation = dialog.getSaveFileName(self, "Choose file name", filename)[0]
 

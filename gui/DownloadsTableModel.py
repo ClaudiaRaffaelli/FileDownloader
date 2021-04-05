@@ -22,6 +22,11 @@ class DownloadsTableModel(QStandardItemModel):
 
 	@pyqtSlot(str, str)
 	def add_download_to_table(self, fullpath, url):
+		"""
+		Responsible for adding to the table the initialization data of the download
+		:param fullpath: is the path of the file to download
+		:param url: is the url of download
+		"""
 		name_item = QStandardItem(fullpath.split('/')[-1])
 		# adding the full path to the item in order to call the "reveal in finder" later on
 		name_item.setData(fullpath, Qt.UserRole + CustomRole.full_path)
@@ -35,9 +40,12 @@ class DownloadsTableModel(QStandardItemModel):
 		dim_item = QStandardItem("Unknown")
 		# here we will be holding the non-decorated dimension in bytes, it will be useful when updating the progress bar
 		dim_item.setData(None, Qt.UserRole + CustomRole.plain_dimension)
+
 		status_item = QStandardItem("Starting...")
 		speed_item = QStandardItem("0 B/s")
 		downloaded_item = QStandardItem("0 B")
+
+		# here is saved the progress bar that is managed from the delegate
 		progress_item = QStandardItem()
 		progress_item.setData(0, Qt.UserRole + CustomRole.progress_bar)
 		self.appendRow([name_item, dim_item, status_item, speed_item, downloaded_item, progress_item])
@@ -60,8 +68,9 @@ class DownloadsTableModel(QStandardItemModel):
 		# to do so we check the plain dimension in bytes
 		plain_dimension = self.data(self.index(row, 1), Qt.UserRole + CustomRole.plain_dimension)
 		if plain_dimension is not None:
-			# for some files if paused and started again the header content dimension can change, and we want to avoid
-			# that at some point the progress bar starts over again
+			# for some files if paused and started again the header content dimension can change (this is especially
+			# true for all the requests with no Content-Length header. We want to avoid that at some point the
+			# progress bar starts over again
 			if downloaded_size > plain_dimension:
 				self.setData(self.index(row, 5), 100, Qt.UserRole + CustomRole.progress_bar)
 			else:
@@ -88,6 +97,10 @@ class DownloadsTableModel(QStandardItemModel):
 
 	@pyqtSlot(int, DownloadStatus)
 	def interrupted_row(self, row, status):
+		"""
+		:param row: the row index of the interrupted row
+		:param status: the type of interruption (pause or abort)
+		"""
 		if status == DownloadStatus.pause:
 			# setting the status of the download row as paused
 			self.setData(self.index(row, 2), "Paused")
@@ -128,7 +141,15 @@ class DownloadsTableModel(QStandardItemModel):
 		return self.index(row, 0).data(Qt.UserRole + CustomRole.full_path)
 
 	def save_model(self, start_i, num_old_data):
-		# i indicates the first key. If the json is new or there are no downloads i is 0, otherwise is a number >0
+		"""
+		This function is called from the main when saving the data from the model to the json file of history
+		:param start_i: is an int that indicates the first key to use. If the json is new the start is 0, otherwise is
+						a number > 0
+		:param num_old_data: int that tells where to start saving the rows from. If this number is > 0 it means that
+								there are some rows that were first inserted from a json and that don't need to be
+								saved again, just updated, and we don't take them here
+		"""
+
 		data_in_model = {}
 		for row in range(num_old_data, self.rowCount()):
 			data = {
@@ -147,7 +168,17 @@ class DownloadsTableModel(QStandardItemModel):
 		return data_in_model
 
 	def insert_custom_data(self, name, fullpath, url, plain_dimension, plain_progress, time_start, status):
-		# used by the main to insert data resumed from the json
+		"""
+		Used by the Main to insert un-finished downloads extracted from the json file of history
+		:param name: the name of the download
+		:param fullpath: the fullpath of the download
+		:param url: the url of the download
+		:param plain_dimension: the dimension in bytes of the download
+		:param plain_progress: the already downloaded chunks of data (in bytes)
+		:param time_start: the time of start of the download
+		:param status: the downloads status, that is Starting or Downloading (completed and aborted downloads are not
+						loaded in this table)
+		"""
 
 		name_item = QStandardItem(name)
 		# adding the full path to the item in order to call the "reveal in finder" later on
@@ -185,5 +216,4 @@ class DownloadsTableModel(QStandardItemModel):
 			# otherwise we set the right percentage
 			progress_item.setData(plain_progress * 100 / int(plain_dimension), Qt.UserRole + CustomRole.progress_bar)
 		self.appendRow([name_item, dim_item, status_item, speed_item, downloaded_item, progress_item])
-
 

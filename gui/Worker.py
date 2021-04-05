@@ -35,12 +35,19 @@ class Worker(QObject):
 		self.status = DownloadStatus.idle
 
 	def init_download(self, thread_id, filepath, url, start):
+		"""
+		:param thread_id: int ID that identifies uniquely the worker
+		:param filepath: the complete path to the file. If not specified is ""
+		:param url: the input url of the download
+		:param start: boolean that tells if the worker has to start the download immediately or not. If False it means
+						that the download has been loaded from json file
+		"""
 		# if the user has not set where to save the file, it will be saved in a default directory
 		if filepath == "":
 			# creating the folder where to save the files as default if it doesn't exists
 			Path("./Downloads").mkdir(parents=True, exist_ok=True)
 
-			# also by default the file is saved in the Download directory
+			# also by default the file is saved in the Downloads directory
 			self.completePath = "./Downloads/" + url.split('/')[-1]
 		else:
 			self.completePath = filepath
@@ -101,7 +108,7 @@ class Worker(QObject):
 			# only at the first start of the download it is set the size of it
 			if not self.initialized:
 				if 'Content-Length' not in response.headers:
-					# the content length header is not provided for this download file and we have to set it to unknown
+					# the content length header is not provided for this download file and is left as unknown
 					pass
 				else:
 					# there is a content-length header
@@ -118,7 +125,7 @@ class Worker(QObject):
 					# if the download has not been set to pause or aborted we continue the download,
 					# otherwise the thread returns
 					if QThread.currentThread().isInterruptionRequested():
-						#print("download interrupted with status {}".format(self.status))
+						# print("download interrupted with status {}".format(self.status))
 						self.download_interrupted.emit(self.threadId, self.status)
 						# resetting the status to idle
 						self.status = DownloadStatus.idle
@@ -130,10 +137,10 @@ class Worker(QObject):
 							utils.speed_calculator(self.downloaded_size, time.time() - start))
 						fd.write(chunk)
 
-		# when the file has been downloaded we quit the thread
 		# print("download exited")
 		# when the file has been downloaded we quit the thread and send a signal of finish that also sets the downloaded
-		# size. If the size was unknown now it is not
+		# size. If the size was unknown now it is not.
+		# This also covers the case where the content length has changed from a pause to a re-start
 		self.download_completed.emit(self.threadId, self.downloaded_size)
 		self.status = DownloadStatus.complete
 		QThread.currentThread().quit()

@@ -22,8 +22,6 @@ class MainWindowUIClass(QMainWindow):
 		self.downloadPage = DownloadPage()
 		self.historyPage = HistoryPage()
 
-		# detecting when the user changes tab
-		# self.tabWidget.currentChanged.connect(self.onChange)
 		self.tabWidget.addTab(self.downloadPage, "Download page")
 		self.tabWidget.addTab(self.historyPage, "History page")
 
@@ -52,12 +50,14 @@ class MainWindowUIClass(QMainWindow):
 							row_content["name"], row_content["path"], row_content["dimension"],
 							row_content["status"], row_content["time_start"], row_content["time_end"])
 					else:
-						# the download goes into the model only if it still exists
+						# an un-finished download goes into the model only if it still exists
 						if os.path.exists(row_content["path"]):
 							# saving the ids of the files loaded from the json (this downloads will be checked for
 							# updating the json on close)
 							self.in_progress_data.append(id_row)
+							# delegating the download page to create a worker with this url and path
 							self.downloadPage.init_download(url=row_content["url"], saving_location=row_content["path"])
+							# also asking the downloads model to add this data
 							self.downloadPage.downloadsTableModel.insert_custom_data(
 								row_content["name"], row_content["path"], row_content["url"], row_content["dimension"],
 								row_content["plain_progress"], row_content["time_start"],
@@ -71,6 +71,9 @@ class MainWindowUIClass(QMainWindow):
 
 	# handle close event
 	def closeEvent(self, closeEvent):
+		"""
+		:param closeEvent: event of main window close
+		"""
 
 		# asking the user if they really want to exit and stop all downloads
 		close_dialog = CloseDialog(None)
@@ -78,7 +81,7 @@ class MainWindowUIClass(QMainWindow):
 
 		if result:
 			# if the history json already exists, we only update it with the new data
-			# (some download that was in progress now maybe it is over and has changed status)
+			# (some download that was in progress now maybe is over and has changed status)
 			if os.path.exists("./UserHistory.json"):
 				# reading the file
 				with open('./UserHistory.json', 'r') as infile:
@@ -94,19 +97,19 @@ class MainWindowUIClass(QMainWindow):
 						row += 1
 
 					# getting the new downloads that are not in the json yet
-					# len(self.in_progress_data) stores the amount of old row of unfinished downloads there
+					# len(self.in_progress_data) stores the amount of old rows of unfinished downloads that there
 					# are in the model. This rows will be ignored
 					data_in_model = self.downloadPage.downloadsTableModel.save_model(
 						start_i=len(json_data), num_old_data=len(self.in_progress_data))
 
-					# merging the two dictionaries
+					# merging the two dictionaries (old data already in json and new data)
 					new_data = {**json_data, **data_in_model}
 
 				with open('./UserHistory.json', 'w') as outfile:
 					json.dump(new_data, outfile)
 
 			else:
-				# if it doesn't exist we create the json and insert the data
+				# if it doesn't exists we create the json and insert the whole data from the download table model
 				with open('./UserHistory.json', 'w') as outfile:
 					data_in_model = self.downloadPage.downloadsTableModel.save_model(start_i=0, num_old_data=0)
 					json.dump(data_in_model, outfile)
@@ -121,7 +124,7 @@ if __name__ == '__main__':
 
 	# setting high DPI allows to have a much better resolution for icons in macOS
 	app.setAttribute(Qt.AA_UseHighDpiPixmaps)
-	app.setApplicationName("SmartDownloader")
+	app.setApplicationName("FilesDownloader")
 	w = MainWindowUIClass()
 	w.showMaximized()
 	exit(app.exec_())

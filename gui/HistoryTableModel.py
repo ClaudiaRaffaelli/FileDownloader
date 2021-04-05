@@ -19,7 +19,15 @@ class HistoryTableModel(QStandardItemModel):
 		self.parent = parent
 
 	def insert_row(self, name, full_path, dimension, status, time_started, time_completed):
-		# loading rows from the json file
+		"""
+		Loading rows from the json file of history
+		:param name: the name of the download
+		:param full_path: the full path of the download
+		:param dimension: the plain dimension in bytes of the download
+		:param status: if the download is Completed or Aborted
+		:param time_started: the first start time
+		:param time_completed: the completion time
+		"""
 
 		name_item = QStandardItem(name)
 		# adding the full path to the item in order to call the "reveal in finder" later on
@@ -51,6 +59,10 @@ class HistoryTableModel(QStandardItemModel):
 		self.setRowCount(0)
 
 	def set_data_moved(self, index):
+		"""
+		Called if the user has opened the menu with right click on the row at index and the file was moved.
+		The file changes status to Moved
+		"""
 		self.setData(self.index(index.row(), 2), "Moved")
 		self.setData(self.index(index.row(), 2), QColor(Qt.red), Qt.ForegroundRole)
 
