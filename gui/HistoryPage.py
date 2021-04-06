@@ -93,7 +93,7 @@ class HistoryPage(QWidget):
 			os.startfile(filepath)
 		except:
 			try:
-				subprocess.call(["open", "-R", filepath])
-			except:
 				subprocess.Popen(["xdg-open", filepath])
+			except:
+				subprocess.call(["open", "-R", filepath])
 
